@@ -584,9 +584,9 @@ public class InvoiceListContentProvider implements IStructuredContentProvider {
 				if (r.exists()) {
 					Fall fall = r.getFall();
 					if (fall.exists()) {
-						String kostentraeger = (String) fall.getInfoElement("Kostenträger");
-						if (kostentraeger != null) {
-							if (garantId != null && garantId.equals(kostentraeger)) {
+						Kontakt costBearer = fall.getCostBearer();
+						if (costBearer != null) {
+							if (garantId != null && garantId.equals(costBearer.getId())) {
 								payerType = "TP";
 								return;
 							}
