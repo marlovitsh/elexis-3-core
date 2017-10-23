@@ -237,10 +237,10 @@ public class BillingProposalWizardDialog extends TitleAreaDialog {
 					@Override
 					public boolean select(Object element){
 						Fall fall = ((Konsultation) element).getFall();
-						String garantId = fall.getInfoString("Kostenträger");
-						if (garantId != null && !garantId.isEmpty()) {
+						Kontakt costBearer = fall.getCostBearer();
+						if (costBearer != null) {
 							for (Kontakt insurer : insurers) {
-								if (garantId.equals(insurer.getId())) {
+								if (costBearer.getId().equals(insurer.getId())) {
 									return true;
 								}
 							}

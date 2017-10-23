@@ -74,12 +74,9 @@ public class ConsultationExport {
 					if (k != null) {
 						f.setAttribute("Garant", fall.getGarant().getLabel());
 					}
-					Kontakt vers = fall.getRequiredContact("Kostenträger");
-					if (vers == null) {
-						vers = fall.getRequiredContact("Kostentraeger");
-					}
-					if (vers != null) {
-						f.setAttribute("Kostentraeger", vers.getLabel());
+					Kontakt costBearer = fall.getCostBearer();
+					if (costBearer != null) {
+						f.setAttribute("Kostentraeger", costBearer.getLabel());
 						f.setAttribute("Versicherungsnummer",
 							fall.getRequiredString("Versicherungsnummer"));
 					}
