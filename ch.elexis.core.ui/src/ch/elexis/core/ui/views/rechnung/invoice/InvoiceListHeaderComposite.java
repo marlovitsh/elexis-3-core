@@ -35,7 +35,7 @@ import ch.elexis.core.ui.dialogs.KontaktSelektor;
 import ch.elexis.core.ui.icons.Images;
 import ch.elexis.core.ui.views.rechnung.InvoiceListView;
 import ch.elexis.core.ui.views.rechnung.Messages;
-import ch.elexis.data.Fall;
+import ch.elexis.data.BillingSystem;
 import ch.elexis.data.Patient;
 
 public class InvoiceListHeaderComposite extends Composite {
@@ -276,7 +276,7 @@ public class InvoiceListHeaderComposite extends Composite {
 	}
 	
 	private String[] getBillingSystems(){
-		String[] abrechnungsSysteme = Fall.getAbrechnungsSysteme();
+		String[] abrechnungsSysteme = BillingSystem.getAbrechnungsSysteme();
 		if (abrechnungsSysteme != null) {
 			abrechnungsSysteme = ch.elexis.core.ui.preferences.UserCasePreferences
 				.sortBillingSystems(abrechnungsSysteme);
