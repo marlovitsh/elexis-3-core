@@ -116,7 +116,7 @@ public class LeistungenExport {
 						pu.anzahlKons += 1;
 						String fallid = fall.getId();
 						String Bezeichnung = fall.getBezeichnung();
-						String gesetz = fall.getRequiredString("Gesetz");
+						String gesetz = fall.getConfiguredBillingSystemLaw().name();
 						String abr = fall.getAbrechnungsSystem();
 						Kontakt kt = fall.getGarant();
 						String rechnungsempfaenger = "";

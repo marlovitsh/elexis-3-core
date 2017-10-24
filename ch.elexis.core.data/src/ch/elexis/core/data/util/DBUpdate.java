@@ -499,6 +499,8 @@ public class DBUpdate {
 		} else {
 			log.error("DBUpdate from Version " + dbv + " to Version "
 				+ versions[versions.length - 1] + " failed.");
+			System.out.println("DBUpdate from Version " + dbv + " to Version "
+				+ versions[versions.length - 1] + " failed.");
 		}
 		return success;
 	}

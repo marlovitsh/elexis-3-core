@@ -174,6 +174,7 @@ public class Messages extends NLS {
 	public static String Leistungscodes_contactHL;
 	public static String Leistungscodes_date;
 	public static String Leistungscodes_dateHL;
+	public static String Leistungscodes_defaultLawLabel;
 	public static String Leistungscodes_defaultOutput;
 	public static String Leistungscodes_defaultOutputLabel;
 	public static String Leistungscodes_defineBillingSystem;
@@ -213,6 +214,7 @@ public class Messages extends NLS {
 	public static String Leistungscodes_reallyDelete;
 	public static String Leistungscodes_reallyWantToDeleteItem;
 	public static String Leistungscodes_removeConstraintTT;
+	public static String Leistungscodes_labelNoCostBearer;
 
 	public static String Leistungscodes_removeOpenReminders;
 	public static String Leistungscodes_separateObligations;

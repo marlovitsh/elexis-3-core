@@ -178,6 +178,8 @@ public class Messages extends NLS {
 	public static String FallDetailBlatt2_ReasonForInsurance;
 	public static String FallDetailBlatt2_SelectGuarantorBody;
 	public static String FallDetailBlatt2_SelectGuarantorCaption;
+	public static String FallDetailBlatt2_SelectCostBearerCaption;
+	public static String FallDetailBlatt2_SelectCostBearerBody;
 	public static String FallDetailBlatt2_StartDate;
 	public static String FallDetailBlatt2_deleteData;
 	public static String FallDetailBlatt2_free;

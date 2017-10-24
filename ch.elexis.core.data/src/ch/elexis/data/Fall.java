@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005-2011, G. Weirich and Elexis
+ * Copyright (c) 2005-2017, G. Weirich and Elexis
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *    G. Weirich - initial implementation
- *    
+ *    MEDEVIT - Outsource BillingSystem definition in 3.4
  *******************************************************************************/
 
 package ch.elexis.data;
@@ -32,7 +32,7 @@ import ch.elexis.core.data.util.Extensions;
 import ch.elexis.core.exceptions.ElexisException;
 import ch.elexis.core.interfaces.ITransferable;
 import ch.elexis.core.jdt.Nullable;
-import ch.elexis.core.model.FallConstants;
+import ch.elexis.core.model.ch.BillingLaw;
 import ch.elexis.data.dto.FallDTO;
 import ch.rgw.tools.ExHandler;
 import ch.rgw.tools.StringTool;
@@ -47,16 +47,8 @@ import ch.rgw.tools.TimeTool;
  */
 public class Fall extends PersistentObject implements IFall, ITransferable<FallDTO> {
 	
-	public static final String VVG_NAME = Messages.Fall_VVG_Name;
-	public static final String PRIVATE_NAME = Messages.Fall_Private_Name; //$NON-NLS-1$
-	public static final String MV_NAME = Messages.Fall_MV_Name;
-	public static final String IV_NAME = Messages.Fall_IV_Name;
-	private static final String KVG_REQUIREMENTS = Messages.Fall_KVGRequirements; //$NON-NLS-1$
-	public static final String KVG_NAME = Messages.Fall_KVG_Name;
-	public static final String UVG_NAME = Messages.Fall_UVG_Name;
-	public static final String UVG_REQUIREMENTS = Messages.Fall_UVGRequirements; //$NON-NLS-1$
-	public static final String CONST_TARMED_DRUCKER = Messages.Fall_TarmedPrinter; //$NON-NLS-1$
-	public static final String CONST_TARMED_LEISTUNG = Messages.Fall_TarmedLeistung; //$NON-NLS-1$
+	public static final String TABLENAME = "FAELLE"; //$NON-NLS-1$
+	
 	public static final String FLD_BEHANDLUNGEN = "Behandlungen"; //$NON-NLS-1$
 	public static final String FLD_KOSTENTRAEGER = "Kostentraeger"; //$NON-NLS-1$
 	public static final String FLD_RECHNUNGSSTELLER_ID = "RechnungsstellerID"; //$NON-NLS-1$
@@ -71,13 +63,12 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	 */
 	public static final String FLD_GARANT_ID = "GarantID"; //$NON-NLS-1$
 	public static final String FLD_GRUND = "Grund"; //$NON-NLS-1$
-	public static final String PATIENT_ID = "PatientID"; //$NON-NLS-1$
-	static final String TABLENAME = "FAELLE"; //$NON-NLS-1$
-	
-	public static final String FLD_COPY_FOR_PATIENT = "CopyForPatient";
+	public static final String FLD_PATIENT_ID = "PatientID"; //$NON-NLS-1$
+	// deliberately not renamed
+	public static final String FLD_BILLINGSYSTEM = "Gesetz"; //$NON-NLS-1$
 	public static final String FLD_RES = "res";//$NON-NLS-2$
-	public static final String FLD_XGESETZ = "xGesetz";//$NON-NLS-2$
 	
+	public static final String FLD_EXT_COPY_FOR_PATIENT = "CopyForPatient"; //$NON-NLS-1$
 	public static final String FLD_EXT_KOSTENTRAEGER = "Kostenträger"; //$NON-NLS-1$
 	public static final String FLD_EXT_RECHNUNGSEMPFAENGER = "Rechnungsempfänger"; //$NON-NLS-1$
 	
@@ -88,7 +79,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	
 	//@formatter:off
 	static {
-		addMapping(TABLENAME, PATIENT_ID, 
+		addMapping(TABLENAME, FLD_PATIENT_ID, 
 			FLD_RES 			+"=Diagnosen", //$NON-NLS-1$
 			FLD_DATUM_VON		+"=S:D:DatumVon", //$NON-NLS-2$
 			FLD_DATUM_BIS 		+"=S:D:DatumBis", //$NON-NLS-2$
@@ -96,7 +87,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 			FLD_BEHANDLUNGEN	+"=LIST:FallID:BEHANDLUNGEN:Datum", //$NON-NLS-2$
 			FLD_BEZEICHNUNG, 	
 			FLD_GRUND, 			
-			FLD_XGESETZ			+"=Gesetz", 	//$NON-NLS-2$
+			FLD_BILLINGSYSTEM,
 			FLD_KOSTENTRAEGER	+"=KostentrID",  //$NON-NLS-2$
 			FLD_VERS_NUMMER, 
 			FLD_FALL_NUMMER, 
@@ -138,14 +129,14 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 		if (!super.isValid()) {
 			return false;
 		}
-		Patient p = Patient.load(get(PATIENT_ID));
+		Patient p = Patient.load(get(FLD_PATIENT_ID));
 		if ((p == null) || (!p.isValid())) {
 			return false;
 		}
 		
 		// Check whether all user-defined requirements for this billing system
 		// are met
-		String reqs = getRequirements(getAbrechnungsSystem());
+		String reqs = BillingSystem.getRequirements(getAbrechnungsSystem());
 		if (reqs != null) {
 			for (String req : reqs.split(";")) { //$NON-NLS-1$
 				String localReq = ""; //$NON-NLS-1$
@@ -207,7 +198,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 		String Abrechnungsmethode){
 		create(null);
 		set(new String[] {
-			PATIENT_ID, FLD_BEZEICHNUNG, FLD_GRUND, FLD_DATUM_VON
+			FLD_PATIENT_ID, FLD_BEZEICHNUNG, FLD_GRUND, FLD_DATUM_VON
 		}, PatientID, Bezeichnung, Grund, new TimeTool().toString(TimeTool.DATE_GER));
 		if (Abrechnungsmethode == null) {
 			Abrechnungsmethode = Fall.getDefaultCaseLaw();
@@ -309,11 +300,11 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	}
 	
 	public boolean getCopyForPatient(){
-		return StringConstants.ONE.equals(getInfoString(FLD_COPY_FOR_PATIENT));
+		return StringConstants.ONE.equals(getInfoString(FLD_EXT_COPY_FOR_PATIENT));
 	}
 	
 	public void setCopyForPatient(boolean copy){
-		setInfoString(FLD_COPY_FOR_PATIENT, copy ? "1" : "0");
+		setInfoString(FLD_EXT_COPY_FOR_PATIENT, copy ? "1" : "0");
 		
 	}
 	
@@ -326,7 +317,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	 */
 	public @Nullable Kontakt getRequiredContact(final String name){
 		String kid = getInfoString(name);
-		if (kid.equals("")) { //$NON-NLS-1$
+		if (kid.equals(StringConstants.EMPTY)) {
 			return null;
 		}
 		return Kontakt.load(kid);
@@ -346,6 +337,15 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	}
 	
 	/**
+	 * @return the {@link BillingLaw} set for the {@link BillingSystem} applied to this {@link Fall}
+	 * @since 3.4
+	 */
+	public BillingLaw getConfiguredBillingSystemLaw(){
+		return BillingLaw.valueOf(BillingSystem.getConfigurationValue(getAbrechnungsSystem(),
+			BillingSystem.CFG_BILLINGLAW, BillingLaw.KVG.name()));
+	}
+	
+	/**
 	 * Retrieve a required String Value from this billing system's definition. If no variable with
 	 * that name is found, the billings system constants will be searched
 	 * 
@@ -355,7 +355,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	public String getRequiredString(final String name){
 		String kid = getInfoString(name);
 		if (StringTool.isNothing(kid)) {
-			kid = getBillingSystemConstant(getAbrechnungsSystem(), name);
+			kid = BillingSystem.getBillingSystemConstant(getAbrechnungsSystem(), name);
 		}
 		return kid;
 	}
@@ -366,62 +366,6 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 		if (idx != -1) {
 			setInfoString(name, val);
 		}
-	}
-	
-	/**
-	 * This is an update only for swiss installations that takes the old tarmed cases to the new
-	 * system
-	 */
-	private static void update(){
-		Query<Fall> qbe = new Query<Fall>(Fall.class);
-		for (Fall fall : qbe.execute()) {
-			if (fall.getInfoString(FLD_EXT_KOSTENTRAEGER).equals("")) { //$NON-NLS-1$
-				fall.setInfoString(FLD_EXT_KOSTENTRAEGER, checkNull(fall //$NON-NLS-1$
-					.get(FLD_KOSTENTRAEGER)));
-			}
-			if (fall.getInfoString(FLD_EXT_RECHNUNGSEMPFAENGER).equals("")) { //$NON-NLS-1$
-				fall.setInfoString(FLD_EXT_RECHNUNGSEMPFAENGER, checkNull(fall //$NON-NLS-1$
-					.get(FLD_GARANT_ID)));
-			}
-			if (fall.getInfoString("Versicherungsnummer").equals("")) { //$NON-NLS-1$ //$NON-NLS-2$
-				fall.setInfoString("Versicherungsnummer", checkNull(fall //$NON-NLS-1$
-					.get(FLD_VERS_NUMMER)));
-			}
-			if (fall.getInfoString("Fallnummer").equals("")) { //$NON-NLS-1$ //$NON-NLS-2$
-				fall.setInfoString("Fallnummer", checkNull(fall //$NON-NLS-1$
-					.get(FLD_FALL_NUMMER)));
-			}
-			if (fall.getInfoString("Unfallnummer").equals("")) { //$NON-NLS-1$ //$NON-NLS-2$
-				fall.setInfoString("Unfallnummer", checkNull(fall //$NON-NLS-1$
-					.get(FLD_FALL_NUMMER)));
-			}
-		}
-	}
-	
-	@Deprecated
-	public Kontakt getArbeitgeber(){
-		String id = getInfoString("Arbeitgeber"); //$NON-NLS-1$
-		Kontakt ret = null;
-		if (StringTool.isNothing(id) || ((ret = Kontakt.load(id)).exists() == false)) {
-			return null;
-		}
-		return ret;
-	}
-	
-	@Deprecated
-	public String getArbeitgeberName(){
-		return getArbeitgeber().getLabel();
-	}
-	
-	/**
-	 * Versichertennummer holen
-	 * 
-	 * @deprecated user getRequiredString instead
-	 */
-	@Deprecated
-	public String getVersNummer(){
-		
-		return checkNull(getInfoString("Versicherungsnummer")); //$NON-NLS-1$
 	}
 	
 	/**
@@ -446,31 +390,21 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	}
 	
 	public void setAbrechnungsSystem(final String system){
-		setInfoString(FallConstants.FLD_EXTINFO_BILLING, system);
+		set(FLD_BILLINGSYSTEM, system);
 	}
 	
 	public String getAbrechnungsSystem(){
-		String ret = getInfoString(FallConstants.FLD_EXTINFO_BILLING);
+		String ret = get(FLD_BILLINGSYSTEM);
 		if (StringTool.isNothing(ret)) {
-			String[] systeme = getAbrechnungsSysteme();
-			String altGesetz = get("xGesetz"); //$NON-NLS-1$
-			if (altGesetz != null) {
-				int idx = StringTool.getIndex(systeme, altGesetz);
-				if (idx == -1) {
-					ret = systeme[0];
-				} else {
-					ret = systeme[idx];
-				}
-			} else {
-				ret = systeme[0];
-			}
+			String[] systeme = BillingSystem.getAbrechnungsSysteme();
+			ret = systeme[0];
 			setAbrechnungsSystem(ret);
 		}
 		return ret;
 	}
 	
 	public String getCodeSystemName(){
-		return getCodeSystem(getAbrechnungsSystem());
+		return BillingSystem.getCodeSystem(getAbrechnungsSystem());
 	}
 	
 	/**
@@ -484,7 +418,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	 */
 	
 	public String getRequirements(){
-		String req = getRequirements(getAbrechnungsSystem());
+		String req = BillingSystem.getRequirements(getAbrechnungsSystem());
 		return req == null ? "" : req; //$NON-NLS-1$
 	}
 	
@@ -499,7 +433,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	 */
 	
 	public String getOptionals(){
-		String req = getOptionals(getAbrechnungsSystem());
+		String req = BillingSystem.getOptionals(getAbrechnungsSystem());
 		return req == null ? "" : req; //$NON-NLS-1$
 	}
 	
@@ -515,7 +449,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	 */
 	
 	public String getUnused(){
-		String req = getUnused(getAbrechnungsSystem());
+		String req = BillingSystem.getUnused(getAbrechnungsSystem());
 		return req == null ? "" : req; //$NON-NLS-1$
 	}
 	
@@ -525,7 +459,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	 * @return
 	 */
 	public String getOutputterName(){
-		return getDefaultPrintSystem(getAbrechnungsSystem());
+		return BillingSystem.getDefaultPrintSystem(getAbrechnungsSystem());
 	}
 	
 	/**
@@ -588,7 +522,7 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	}
 	
 	public Patient getPatient(){
-		return Patient.load(get(PATIENT_ID));
+		return Patient.load(get(FLD_PATIENT_ID));
 	}
 	
 	public String getGrund(){
@@ -733,272 +667,8 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 	}
 	
 	public static String getDefaultCaseLaw(){
-		return CoreHub.userCfg.get(Preferences.USR_DEFLAW, getAbrechnungsSysteme()[0]);
-	}
-	
-	/**
-	 * Find all installed billing systems. If we do not find any, we assume that this is an old
-	 * installation and try to update. If we find a tarmed-Plugin installed, we create
-	 * default-tarmed billings.
-	 * 
-	 * @return an Array with the names of all configured billing systems
-	 */
-	public static String[] getAbrechnungsSysteme(){
-		String[] ret = CoreHub.globalCfg.nodes(Preferences.LEISTUNGSCODES_CFG_KEY);
-		if ((ret == null) || (ret.length == 0)) {
-			List<IConfigurationElement> list =
-				Extensions.getExtensions(ExtensionPointConstantsData.RECHNUNGS_MANAGER); //$NON-NLS-1$
-			for (IConfigurationElement ic : list) {
-				if (ic.getAttribute("name").startsWith("Tarmed")) { //$NON-NLS-1$ //$NON-NLS-2$
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/KVG/name", //$NON-NLS-1$
-						KVG_NAME);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/KVG/gesetz", //$NON-NLS-1$
-						"KVG"); //$NON-NLS-1$
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/KVG/leistungscodes", //$NON-NLS-1$
-						CONST_TARMED_LEISTUNG);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/KVG/standardausgabe", //$NON-NLS-1$
-						CONST_TARMED_DRUCKER);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/KVG/bedingungen", //$NON-NLS-1$
-						KVG_REQUIREMENTS);
-					
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/UVG/name", //$NON-NLS-1$
-						UVG_NAME);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/UVG/leistungscodes", //$NON-NLS-1$
-						CONST_TARMED_LEISTUNG);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/UVG/standardausgabe", //$NON-NLS-1$
-						CONST_TARMED_DRUCKER);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/UVG/bedingungen", //$NON-NLS-1$
-						UVG_REQUIREMENTS);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/UVG/gesetz", //$NON-NLS-1$
-						"UVG"); //$NON-NLS-1$
-					
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/IV/name", IV_NAME); //$NON-NLS-1$
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/IV/leistungscodes", //$NON-NLS-1$
-						CONST_TARMED_LEISTUNG);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/IV/standardausgabe", //$NON-NLS-1$
-						CONST_TARMED_DRUCKER);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/IV/bedingungen", //$NON-NLS-1$
-						"Kostenträger:K;Fallnummer:T"); //$NON-NLS-1$
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/IV/gesetz", //$NON-NLS-1$
-						"IVG"); //$NON-NLS-1$
-					
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/MV/name", MV_NAME); //$NON-NLS-1$
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/MV/leistungscodes", //$NON-NLS-1$
-						CONST_TARMED_LEISTUNG);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/MV/standardausgabe", //$NON-NLS-1$
-						CONST_TARMED_DRUCKER);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/MV/bedingungen", //$NON-NLS-1$
-						"Kostenträger:K"); //$NON-NLS-1$
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/MV/gesetz", //$NON-NLS-1$
-						"MVG"); //$NON-NLS-1$
-					
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/privat/name", //$NON-NLS-1$
-						PRIVATE_NAME);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/privat/leistungscodes", //$NON-NLS-1$
-						CONST_TARMED_LEISTUNG);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/privat/standardausgabe", //$NON-NLS-1$
-						CONST_TARMED_DRUCKER);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/privat/gesetz", //$NON-NLS-1$
-						"VVG"); //$NON-NLS-1$
-					
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/VVG/name", //$NON-NLS-1$
-						VVG_NAME);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/VVG/leistungscodes", //$NON-NLS-1$
-						CONST_TARMED_LEISTUNG);
-					CoreHub.globalCfg.set(
-						Preferences.LEISTUNGSCODES_CFG_KEY + "/VVG/standardausgabe", //$NON-NLS-1$
-						CONST_TARMED_DRUCKER);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/VVG/bedingungen", //$NON-NLS-1$
-						KVG_REQUIREMENTS);
-					CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/VVG/gesetz", //$NON-NLS-1$
-						"VVG"); //$NON-NLS-1$
-					
-					PersistentObject.getConnection().exec(
-						"UPDATE VK_PREISE set typ='UVG' WHERE typ='ch.elexis.data.TarmedLeistungUVG'"); //$NON-NLS-1$
-					PersistentObject.getConnection().exec(
-						"UPDATE VK_PREISE set typ='KVG' WHERE typ='ch.elexis.data.TarmedLeistungKVG'"); //$NON-NLS-1$
-					PersistentObject.getConnection().exec(
-						"UPDATE VK_PREISE set typ='IV' WHERE typ='ch.elexis.data.TarmedLeistungIV'"); //$NON-NLS-1$
-					PersistentObject.getConnection().exec(
-						"UPDATE VK_PREISE set typ='MV' WHERE typ='ch.elexis.data.TarmedLeistungMV'"); //$NON-NLS-1$
-					update();
-					break;
-				}
-			}
-			ret = CoreHub.globalCfg.nodes(Preferences.LEISTUNGSCODES_CFG_KEY);
-			if (ret == null) {
-				return new String[] {
-					Messages.Fall_Undefined
-				};
-			}
-		}
-		return ret;
-	}
-	
-	public static void createAbrechnungssystem(final String systemname, final String codesystem,
-		final String ausgabe, final String... requirements){
-		String key = Preferences.LEISTUNGSCODES_CFG_KEY + "/" + systemname; //$NON-NLS-1$
-		CoreHub.globalCfg.set(key + "/name", systemname); //$NON-NLS-1$
-		CoreHub.globalCfg.set(key + "/leistungscodes", codesystem); //$NON-NLS-1$
-		CoreHub.globalCfg.set(key + "/standardausgabe", ausgabe); //$NON-NLS-1$
-		CoreHub.globalCfg.set(key + "/bedingungen", StringTool.join(requirements, //$NON-NLS-1$
-			";")); //$NON-NLS-1$
-	}
-	
-	public static void removeAbrechnungssystem(final String systemName){
-		CoreHub.globalCfg.remove(Preferences.LEISTUNGSCODES_CFG_KEY + "/" + systemName); //$NON-NLS-1$
-		CoreHub.globalCfg.flush();
-	}
-	
-	public static String getCodeSystem(final String billingSystem){
-		String ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/leistungscodes", null); //$NON-NLS-1$
-		if (ret == null) { // compatibility
-			getAbrechnungsSysteme();
-			ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-				+ billingSystem + "/leistungscodes", "?"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		return ret;
-	}
-	
-	public static String getDefaultPrintSystem(final String billingSystem){
-		String ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/standardausgabe", null); //$NON-NLS-1$
-		if (ret == null) { // compatibility
-			getAbrechnungsSysteme();
-			ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-				+ billingSystem + "/standardausgabe", "?"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		return ret;
-	}
-	
-	public static String[] getBillingSystemConstants(final String billingSystem){
-		String bc = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/constants", null); //$NON-NLS-1$
-		if (bc == null) {
-			return new String[0];
-		} else {
-			return bc.split("#"); //$NON-NLS-1$
-		}
-	}
-	
-	public static String getBillingSystemConstant(final String billingSystem,
-		final String constant){
-		String[] c = getBillingSystemConstants(billingSystem);
-		for (String bc : c) {
-			String[] val = bc.split("="); //$NON-NLS-1$
-			if (val[0].equalsIgnoreCase(constant)) {
-				return val[1];
-			}
-		}
-		return ""; //$NON-NLS-1$
-	}
-	
-	/**
-	 * add a billing system constant
-	 * 
-	 * @param billingSystem
-	 *            the Billing system
-	 * @param constant
-	 *            a String of the form name=value
-	 * 
-	 */
-	public static void addBillingSystemConstant(final String billingSystem, final String constant){
-		if (constant.indexOf('=') != -1) {
-			String bc = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-				+ billingSystem + "/constants", null); //$NON-NLS-1$
-			if (bc != null) {
-				bc += "#" + constant; //$NON-NLS-1$
-			} else {
-				bc = constant;
-			}
-			CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/" + billingSystem //$NON-NLS-1$
-				+ "/constants", bc); //$NON-NLS-1$
-		}
-	}
-	
-	public static void removeBillingSystemConstant(final String billingSystem,
-		final String constant){
-		String bc = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/constants", null); //$NON-NLS-1$
-		bc = bc.replaceAll(constant, ""); //$NON-NLS-1$
-		bc = bc.replaceAll("##", "#"); //$NON-NLS-1$ //$NON-NLS-2$
-		bc = bc.replaceFirst("#$", ""); //$NON-NLS-1$ //$NON-NLS-2$
-		bc = bc.replaceFirst("^#", ""); //$NON-NLS-1$ //$NON-NLS-2$
-		CoreHub.globalCfg.set(Preferences.LEISTUNGSCODES_CFG_KEY + "/" + billingSystem //$NON-NLS-1$
-			+ "/constants", bc); //$NON-NLS-1$
-	}
-	
-	/**
-	 * 
-	 * @param billingSystem
-	 * @param attr
-	 * @return
-	 * @deprecated use getBillingSystemConstant
-	 */
-	@Deprecated
-	public static String getBillingSystemAttribute(final String billingSystem, final String attr){
-		String ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/" + attr, ""); //$NON-NLS-1$ //$NON-NLS-2$
-		return ret;
-	}
-	
-	/**
-	 * Retrieve requirements of a given billingSystem
-	 * 
-	 * @param billingSystem
-	 * @return a ; separated String of fields name:type where type is one of K,T,D for Kontakt,
-	 *         Text, Date TM Text Multiline TS Text Styled CS Combo saved as string CN Combo saved
-	 *         as numeric (selected index) LS List items, saved as strings, tab-delimited LN List
-	 *         items, saved as numerics, tab-delimited (selected indexes) X CheckBox always saved as
-	 *         numeric RS Radios, saved as string RN Radios, saved as numeric, selected index
-	 */
-	public static String getRequirements(final String billingSystem){
-		String ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/bedingungen", null); //$NON-NLS-1$
-		return ret;
-	}
-	
-	/**
-	 * Retrieve optionals of a given billingSystem
-	 * 
-	 * @param billingSystem
-	 * @return a ; separated String of fields name:type where type is one of K,T,D for Kontakt,
-	 *         Text, Date TM Text Multiline TS Text Styled CS Combo saved as string CN Combo saved
-	 *         as numeric (selected index) LS List items, saved as strings, tab-delimited LN List
-	 *         items, saved as numerics, tab-delimited (selected indexes) X CheckBox always saved as
-	 *         numeric RS Radios, saved as string RN Radios, saved as numeric, selected index
-	 */
-	public static String getOptionals(final String billingSystem){
-		String ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/fakultativ", null); //$NON-NLS-1$
-		return ret;
-	}
-	
-	/**
-	 * Retrieve unused/saved definitions of previously used required and optional field for a given
-	 * billingSystem
-	 * 
-	 * @param billingSystem
-	 * @return a ; separated String of fields name:type where type is one of K,T,D for Kontakt,
-	 *         Text, Date TM Text Multiline TS Text Styled CS Combo saved as string CN Combo saved
-	 *         as numeric (selected index) LS List items, saved as strings, tab-delimited LN List
-	 *         items, saved as numerics, tab-delimited (selected indexes) X CheckBox always saved as
-	 *         numeric RS Radios, saved as string RN Radios, saved as numeric, selected index
-	 */
-	public static String getUnused(final String billingSystem){
-		String ret = CoreHub.globalCfg.get(Preferences.LEISTUNGSCODES_CFG_KEY + "/" //$NON-NLS-1$
-			+ billingSystem + "/unused", null); //$NON-NLS-1$
-		return ret;
+		return CoreHub.userCfg.get(Preferences.USR_DEFLAW,
+			BillingSystem.getAbrechnungsSysteme()[0]);
 	}
 	
 	/**
@@ -1072,12 +742,13 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 		Fall clone = pat.neuerFall(getBezeichnung(), getGrund(), getAbrechnungsSystem());
 		
 		String[] fields = new String[] {
-			Fall.FLD_GARANT_ID, Fall.FLD_FALL_NUMMER, Fall.FLD_RN_PLANUNG, Fall.FLD_RES,
-			Fall.FLD_DATUM_VON, Fall.FLD_EXTINFO, Fall.FLD_XGESETZ
+			Fall.FLD_GARANT_ID, Fall.FLD_KOSTENTRAEGER, Fall.FLD_FALL_NUMMER, Fall.FLD_RN_PLANUNG,
+			Fall.FLD_RES, Fall.FLD_DATUM_VON, Fall.FLD_EXTINFO, Fall.FLD_BILLINGSYSTEM
 		};
 		String[] values = new String[] {
-			getGarant().getId(), getFallNummer(), get(Fall.FLD_RN_PLANUNG), get(Fall.FLD_RES),
-			getBeginnDatum(), get(Fall.FLD_EXTINFO), getAbrechnungsSystem()
+			getGarant().getId(), get(Fall.FLD_KOSTENTRAEGER), getFallNummer(),
+			get(Fall.FLD_RN_PLANUNG), get(Fall.FLD_RES), getBeginnDatum(), get(Fall.FLD_EXTINFO),
+			getAbrechnungsSystem()
 		};
 		clone.set(fields, values);
 		
@@ -1101,9 +772,4 @@ public class Fall extends PersistentObject implements IFall, ITransferable<FallD
 		return keys;
 	}
 	
-	@Override
-	public String getRequirementsBySystem(String abrechnungsSystem){
-		String req = getRequirements(abrechnungsSystem);
-		return req == null ? "" : req;
-	}
 }
