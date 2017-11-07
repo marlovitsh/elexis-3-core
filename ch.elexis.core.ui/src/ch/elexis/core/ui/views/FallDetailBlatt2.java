@@ -863,6 +863,7 @@ public class FallDetailBlatt2 extends Composite implements IUnlockable {
 	
 	private void allowFieldUpdate(boolean lockEnabled){
 		boolean allowFieldUpdate = true;
+		boolean costBearerEnabled = true;
 		if (actFall != null) {
 			Query<Rechnung> rQuery = new Query<Rechnung>(Rechnung.class);
 			rQuery.add(Rechnung.CASE_ID, Query.EQUALS, actFall.getId());
@@ -871,6 +872,7 @@ public class FallDetailBlatt2 extends Composite implements IUnlockable {
 			if (billMatch != null && !billMatch.isEmpty()) {
 				allowFieldUpdate = false;
 			}
+			costBearerEnabled = !BillingSystem.isCostBearerDisabled(actFall.getAbrechnungsSystem());
 		}
 		
 		boolean enable = lockEnabled && (allowFieldUpdate || invoiceCorrection);
@@ -884,12 +886,11 @@ public class FallDetailBlatt2 extends Composite implements IUnlockable {
 			enable ? UiDesk.getColor(UiDesk.COL_BLACK) : UiDesk.getColor(UiDesk.COL_GREY60));
 		tGarant.setEditable(enable);
 		
-		boolean costBearerEnabled = !BillingSystem.isCostBearerDisabled(actFall.getAbrechnungsSystem());	
-		tCostBearer.setForeground(
-			(enable && costBearerEnabled)? UiDesk.getColor(UiDesk.COL_BLACK) : UiDesk.getColor(UiDesk.COL_GREY60));
+		tCostBearer.setForeground((enable && costBearerEnabled) ? UiDesk.getColor(UiDesk.COL_BLACK)
+				: UiDesk.getColor(UiDesk.COL_GREY60));
 		tCostBearer.setEditable(enable && costBearerEnabled);
 		hlCostBearer.setEnabled(enable && costBearerEnabled);
-
+		
 		autoFill.setEnabled(enable);
 		
 		for (Control req : lReqs) {
