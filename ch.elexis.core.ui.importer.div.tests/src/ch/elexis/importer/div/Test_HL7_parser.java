@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,8 +42,10 @@ import org.junit.Test;
 
 import ch.elexis.core.importer.div.importers.HL7Parser;
 import ch.elexis.core.importer.div.importers.Messages;
+import ch.elexis.core.model.ILabItem;
 import ch.elexis.core.model.LabResultConstants;
 import ch.elexis.core.types.LabItemTyp;
+import ch.elexis.core.types.PathologicDescription.Description;
 import ch.elexis.core.ui.importer.div.importers.TestHL7Parser;
 import ch.elexis.data.LabItem;
 import ch.elexis.data.LabResult;
@@ -164,8 +167,11 @@ public class Test_HL7_parser {
 	}
 
 	/**
-	 * Test method for
+	 * <<<<<<< HEAD Test method for
 	 * {@link ch.elexis.importers.HL7#HL7(java.lang.String, java.lang.String)}.
+	 * ======= Test method for
+	 * {@link ch.elexis.importers.HL7#HL7(java.lang.String, java.lang.String)}.
+	 * >>>>>>> 3c1a4ac1c0dc0ed3b74bf940acbff79cbe88d06e
 	 * 
 	 * @throws IOException
 	 */
@@ -200,8 +206,10 @@ public class Test_HL7_parser {
 	}
 
 	/**
-	 * Rothen filled the HL7 field(8) with 'N' if there was no patholical value
-	 * found
+	 * <<<<<<< HEAD Rothen filled the HL7 field(8) with 'N' if there was no
+	 * patholical value found ======= Rothen filled the HL7 field(8) with 'N' if
+	 * there was no patholical value found >>>>>>>
+	 * 3c1a4ac1c0dc0ed3b74bf940acbff79cbe88d06e
 	 * 
 	 * @throws IOException
 	 */
@@ -234,7 +242,6 @@ public class Test_HL7_parser {
 				res = qrr.get(j);
 				item = (LabItem) qrr.get(j).getItem();
 			}
-
 			if (name.contentEquals("MCV") || name.contentEquals("Basophile%") || name.contentEquals("Triglyceride")) {
 				assertTrue(qrr.get(j).isFlag(LabResultConstants.PATHOLOGIC));
 				assertTrue(qrr.get(j).getFlags() == LabResultConstants.PATHOLOGIC);
@@ -283,15 +290,19 @@ public class Test_HL7_parser {
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		List<LabResult> results = qr.execute();
 		assertFalse(results.isEmpty());
-		LabResult result = results.get(2);
+		assertEquals(2, results.size());
+		LabResult result = results.get(1);
 		String resultString = result.getComment();
 		assertFalse(resultString.contains("\\.br\\"));
 		assertTrue(resultString.contains("\n"));
 	}
 
 	/**
-	 * Test method Analytica HL7 (Details) Some detailed checks about how a sample
-	 * hl7-file is imported Actually Analytica has a special importer
+	 * <<<<<<< HEAD Test method Analytica HL7 (Details) Some detailed checks about
+	 * how a sample hl7-file is imported Actually Analytica has a special importer
+	 * ======= Test method Analytica HL7 (Details) Some detailed checks about how a
+	 * sample hl7-file is imported Actually Analytica has a special importer >>>>>>>
+	 * 3c1a4ac1c0dc0ed3b74bf940acbff79cbe88d06e
 	 * 
 	 * @throws IOException
 	 */
@@ -356,7 +367,6 @@ public class Test_HL7_parser {
 		assertEquals(1, qrr.size());
 		LabResult labResult = qrr.get(0);
 		assertEquals("20170822091024", labResult.get(LabResult.ANALYSETIME));
-
 		qr = new Query<>(LabResult.class);
 		qr.add(LabResult.PATIENT_ID, Query.EQUALS, labResult.getPatient().getId());
 		assertEquals(6, qr.execute().size());
@@ -380,7 +390,8 @@ public class Test_HL7_parser {
 		parseOneHL7file(new File(workDir.toString(), "Analytica/Influenza_Labresultat.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
-		List<LabResult> qrr = qr.execute();
+		assertEquals(2, qr.execute().size());
+
 		int j = 0;
 		Query<LabItem> query = new Query<LabItem>(LabItem.class);
 		query.orderBy(false, LabItem.SHORTNAME);
@@ -393,9 +404,33 @@ public class Test_HL7_parser {
 				j++;
 			}
 		}
+
+		assertEquals("NASOPHARYNGEALABSTRICH - Influenza A Virus  (Genom-Nachweis)", itemArray[0].getName());
+		assertEquals("NASOPHARYNGEALABSTRICH - Influenza B Virus  (Genom-Nachweis)", itemArray[1].getName());
+	}
+
+	@Test
+	public void testImport_10655() throws IOException {
+		removeAllPatientsAndDependants();
+		removeAllLaboWerte();
+		parseOneHL7file(new File(workDir.toString(), "Analytica/0218040634_6467538389964.hl7"), false, true);
+		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
+		List<LabResult> qrr = qr.execute();
 		assertEquals(3, qrr.size());
-		assertTrue(itemArray[0].getLabel().contains("INFA, Influenza A Virus"));
-		assertTrue(itemArray[1].getLabel().contains("INFB, Influenza B Virus"));
-		assertTrue(itemArray[2].getLabel().contains("MAT, MATERIAL"));
+
+		qr = new Query<LabResult>(LabResult.class);
+		qr.add(LabResult.COMMENT, Query.LIKE, "Candida albicans%");
+
+		LabResult labResult = qr.execute().get(0);
+		assertEquals(0, labResult.getFlags());
+		assertEquals("text", labResult.getResult());
+		assertEquals(Description.PATHO_IMPORT_NO_INFO, labResult.getPathologicDescription().getDescription());
+		assertTrue(labResult.getComment(), labResult.getComment().startsWith("Candida albicans"));
+		assertTrue(StringUtils.isEmpty(labResult.getRefMale()));
+		assertTrue(StringUtils.isEmpty(labResult.getRefFemale()));
+
+		ILabItem item = labResult.getItem();
+		assertEquals("VAGINA-ABSTRICH - Kultur aerob", item.getName());
+		assertTrue(item.getGroup(), item.getGroup().startsWith("Z Automatisch"));
 	}
 }
