@@ -52,35 +52,35 @@ import ch.elexis.data.Query;
 import ch.rgw.tools.Result;
 
 public class Test_HL7_parser {
-	
+
 	private static Path workDir = null;
-	
+
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception{}
-	
+	public static void setUpBeforeClass() throws Exception {
+	}
+
 	@Before
-	public void setup() throws Exception{
+	public void setup() throws Exception {
 		workDir = Helpers.copyRscToTempDirectory();
 	}
-	
+
 	@After
-	public void teardown() throws Exception{
+	public void teardown() throws Exception {
 		removeAllPatientsAndDependants();
 		if (workDir != null) {
 			Helpers.removeTempDirectory(workDir);
 		}
 	}
-	
+
 	private HL7Parser hlp = new TestHL7Parser("HL7_Test");
-	
+
 	@SuppressWarnings("unused")
-	private void dumpLabresult(LabResult res){
-		System.out.println("LabResult: pathological ? " + res.isFlag(LabResultConstants.PATHOLOGIC)
-			+ " name: " + res.getItem().getName() + " label: " + res.getLabel() + " result: "
-			+ res.getResult());
+	private void dumpLabresult(LabResult res) {
+		System.out.println("LabResult: pathological ? " + res.isFlag(LabResultConstants.PATHOLOGIC) + " name: "
+				+ res.getItem().getName() + " label: " + res.getLabel() + " result: " + res.getResult());
 	}
-	
-	static private void removeAllLaboWerte(){
+
+	static private void removeAllLaboWerte() {
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		List<LabResult> qrr = qr.execute();
 		for (int j = 0; j < qrr.size(); j++) {
@@ -102,29 +102,29 @@ public class Test_HL7_parser {
 		qrli = new Query<LabItem>(LabItem.class);
 		qLi = qrli.execute();
 	}
-	
-	static private void removeAllPatientsAndDependants(){
+
+	static private void removeAllPatientsAndDependants() {
 		Query<Patient> qr = new Query<Patient>(Patient.class);
 		List<Patient> qrr = qr.execute();
 		for (int j = 0; j < qrr.size(); j++) {
 			qrr.get(j).delete(true);
 		}
-		
+
 		qr = new Query<Patient>(Patient.class);
 		qrr = qr.execute();
 	}
-	
-	private void parseOneHL7file(File f, boolean deleteAll, boolean alsoFailing) throws IOException{
+
+	private void parseOneHL7file(File f, boolean deleteAll, boolean alsoFailing) throws IOException {
 		String name = f.getAbsolutePath();
 		if (f.canRead() && (name.toLowerCase().endsWith(".hl7"))) {
 			if (f.getName().equalsIgnoreCase("01TEST5005.hl7")
-				|| f.getName().equalsIgnoreCase("1_Kunde_20090612083757162_10009977_.HL7")) {
+					|| f.getName().equalsIgnoreCase("1_Kunde_20090612083757162_10009977_.HL7")) {
 				if (!alsoFailing) {
 					// System.out.println("Skipping " + name);
 					return;
 				}
 			}
-			// System.out.println("parseOneHL7file " + name + "  " + f.length() + " bytes ");
+			// System.out.println("parseOneHL7file " + name + " " + f.length() + " bytes ");
 			Result<?> rs = hlp.importFile(f, f.getParentFile(), true);
 			if (!rs.isOK()) {
 				String info = "Datei " + name + " fehlgeschlagen";
@@ -146,8 +146,8 @@ public class Test_HL7_parser {
 			System.out.println("Skipping Datei " + name);
 		}
 	}
-	
-	private void parseAllHL7files(File directory) throws IOException{
+
+	private void parseAllHL7files(File directory) throws IOException {
 		File[] files = directory.listFiles();
 		int nrFiles = 0;
 		for (int i = 0; i < files.length; i++) {
@@ -162,30 +162,31 @@ public class Test_HL7_parser {
 		}
 		System.out.println("testHL7files: " + nrFiles + " files in " + directory.toString());
 	}
-	
+
 	/**
-	 * Test method for {@link ch.elexis.importers.HL7#HL7(java.lang.String, java.lang.String)}.
+	 * Test method for
+	 * {@link ch.elexis.importers.HL7#HL7(java.lang.String, java.lang.String)}.
 	 * 
 	 * @throws IOException
 	 */
 	@Test
-	public void testHL7files() throws IOException{
+	public void testHL7files() throws IOException {
 		System.out.println("testHL7files in elexis-import_test/rsc: This will take some time");
 		parseAllHL7files(new File(workDir.toString()));
 	}
-	
+
 	@Test
-	public void testOverwrite() throws IOException{
+	public void testOverwrite() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
 		File overwrite_test_1 = new File(workDir.toString(), "overwrite_test_1.hl7");
 		assertEquals("Must be able to read: " + overwrite_test_1.getAbsoluteFile().toString(), true,
-			overwrite_test_1.canRead());
+				overwrite_test_1.canRead());
 		parseOneHL7file(new File(workDir.toString(), "overwrite_test_1.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
 		List<LabResult> qrr = qr.execute();
-		
+
 		int foundCnt = 0;
 		for (LabResult labResult : qrr) {
 			String name = labResult.getItem().getName();
@@ -197,24 +198,23 @@ public class Test_HL7_parser {
 		}
 		assertEquals(1, foundCnt);
 	}
-	
+
 	/**
-	 * Rothen filled the HL7 field(8) with 'N' if there was no patholical value found
+	 * Rothen filled the HL7 field(8) with 'N' if there was no patholical value
+	 * found
 	 * 
 	 * @throws IOException
 	 */
 	@Test
-	public void testRothenPatholical() throws IOException{
+	public void testRothenPatholical() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
-		parseOneHL7file(
-			new File(workDir.toString(), "Rothen/1_Kunde_20090612083757162_10009977_.HL7"), false,
-			true);
+		parseOneHL7file(new File(workDir.toString(), "Rothen/1_Kunde_20090612083757162_10009977_.HL7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
 		List<LabResult> qrr = qr.execute();
 		assertEquals(40, qrr.size());
-		
+
 		int j = 0;
 		Query<LabItem> query = new Query<LabItem>(LabItem.class);
 		query.orderBy(false, LabItem.SHORTNAME);
@@ -234,9 +234,8 @@ public class Test_HL7_parser {
 				res = qrr.get(j);
 				item = (LabItem) qrr.get(j).getItem();
 			}
-			
-			if (name.contentEquals("MCV") || name.contentEquals("Basophile%")
-				|| name.contentEquals("Triglyceride")) {
+
+			if (name.contentEquals("MCV") || name.contentEquals("Basophile%") || name.contentEquals("Triglyceride")) {
 				assertTrue(qrr.get(j).isFlag(LabResultConstants.PATHOLOGIC));
 				assertTrue(qrr.get(j).getFlags() == LabResultConstants.PATHOLOGIC);
 				foundPathological = true;
@@ -260,14 +259,12 @@ public class Test_HL7_parser {
 		assertNotNull(res);
 		assertEquals(res.getResult(), "1.6");
 	}
-	
+
 	@Test
-	public void testTextResult() throws IOException{
+	public void testTextResult() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
-		parseOneHL7file(
-			new File(workDir.toString(), "Arnaboldi/1_20090729162631490_6038_09_12100.HL7"), false,
-			true);
+		parseOneHL7file(new File(workDir.toString(), "Arnaboldi/1_20090729162631490_6038_09_12100.HL7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		List<LabResult> results = qr.execute();
 		assertFalse(results.isEmpty());
@@ -277,13 +274,12 @@ public class Test_HL7_parser {
 		assertFalse(resultString.contains("\\.br\\"));
 		assertTrue(resultString.contains("\n"));
 	}
-	
+
 	@Test
-	public void testTextResultMultiLinebreaks() throws IOException{
+	public void testTextResultMultiLinebreaks() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
-		parseOneHL7file(new File(workDir.toString(), "Analytica/0216370074_6417526401671.hl7"),
-			false, true);
+		parseOneHL7file(new File(workDir.toString(), "Analytica/0216370074_6417526401671.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		List<LabResult> results = qr.execute();
 		assertFalse(results.isEmpty());
@@ -292,15 +288,15 @@ public class Test_HL7_parser {
 		assertFalse(resultString.contains("\\.br\\"));
 		assertTrue(resultString.contains("\n"));
 	}
-	
+
 	/**
-	 * Test method Analytica HL7 (Details) Some detailed checks about how a sample hl7-file is
-	 * imported Actually Analytica has a special importer
+	 * Test method Analytica HL7 (Details) Some detailed checks about how a sample
+	 * hl7-file is imported Actually Analytica has a special importer
 	 * 
 	 * @throws IOException
 	 */
 	@Test
-	public void testAnalyticaHL7() throws IOException{
+	public void testAnalyticaHL7() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
 		parseOneHL7file(new File(workDir.toString(), "Analytica/01TEST5005.hl7"), false, true);
@@ -333,7 +329,7 @@ public class Test_HL7_parser {
 			}
 		}
 		assertTrue(found);
-		
+
 		// Test fields
 		LabItem aItem = itemArray[2];
 		assertEquals("g/dl", aItem.getEinheit());
@@ -347,44 +343,41 @@ public class Test_HL7_parser {
 		List<Patient> pqrr = pqr.execute();
 		assertEquals(1, pqrr.size());
 	}
-	
+
 	@Test
-	public void testAnalyticaFollowUpResultMissing_9252() throws IOException{
+	public void testAnalyticaFollowUpResultMissing_9252() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
-		parseOneHL7file(
-			new File(workDir.toString(), "Analytica/erstes Resultat0217330708_6451725824332.hl7"),
-			false, true);
+		parseOneHL7file(new File(workDir.toString(), "Analytica/erstes Resultat0217330708_6451725824332.hl7"), false,
+				true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.add(LabResult.RESULT, Query.LIKE, "Bisher kein Wachstum%");
 		List<LabResult> qrr = qr.execute();
 		assertEquals(1, qrr.size());
 		LabResult labResult = qrr.get(0);
 		assertEquals("20170822091024", labResult.get(LabResult.ANALYSETIME));
-		
+
 		qr = new Query<>(LabResult.class);
 		qr.add(LabResult.PATIENT_ID, Query.EQUALS, labResult.getPatient().getId());
 		assertEquals(6, qr.execute().size());
-		
-		parseOneHL7file(
-			new File(workDir.toString(), "Analytica/zweites Resultat0217330708_6452745605734.hl7"),
-			false, true);
+
+		parseOneHL7file(new File(workDir.toString(), "Analytica/zweites Resultat0217330708_6452745605734.hl7"), false,
+				true);
 		assertEquals("Trichophyton rubrum (nachweisbar)", labResult.getResult());
 		assertEquals("20170901144005", labResult.get(LabResult.ANALYSETIME));
 	}
-	
+
 	/**
-	 * Test method Analytica HL7 (Details), check if the names of the imported {@link LabItem} are
-	 * correct.
+	 * Test method Analytica HL7 (Details), check if the names of the imported
+	 * {@link LabItem} are correct.
 	 * 
 	 * @throws IOException
 	 */
 	@Test
-	public void testAnalyticaHL7LabItemName() throws IOException{
+	public void testAnalyticaHL7LabItemName() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
-		parseOneHL7file(new File(workDir.toString(), "Analytica/Influenza_Labresultat.hl7"), false,
-			true);
+		parseOneHL7file(new File(workDir.toString(), "Analytica/Influenza_Labresultat.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
 		List<LabResult> qrr = qr.execute();
