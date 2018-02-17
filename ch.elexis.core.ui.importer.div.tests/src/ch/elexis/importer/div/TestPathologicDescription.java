@@ -32,34 +32,35 @@ import ch.elexis.data.Query;
 import ch.rgw.tools.Result;
 
 public class TestPathologicDescription {
-	
+
 	private static Path workDir = null;
-	
+
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception{}
-	
+	public static void setUpBeforeClass() throws Exception {
+	}
+
 	@Before
-	public void setup() throws Exception{
+	public void setup() throws Exception {
 		workDir = Helpers.copyRscToTempDirectory();
 	}
-	
+
 	@After
-	public void teardown() throws Exception{
+	public void teardown() throws Exception {
 		removeAllPatientsAndDependants();
 		if (workDir != null) {
 			Helpers.removeTempDirectory(workDir);
 		}
 	}
-	
+
 	private HL7Parser hlp = new TestHL7Parser("HL7_Test");
-	
+
 	@Test
-	public void testAnalyticaHL7UseLocalRef() throws IOException{
+	public void testAnalyticaHL7UseLocalRef() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
 		// set the use local config to true
 		CoreHub.userCfg.set(Preferences.LABSETTINGS_CFG_LOCAL_REFVALUES, true);
-		
+
 		parseOneHL7file(new File(workDir.toString(), "Analytica/01TEST5005.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
@@ -110,16 +111,15 @@ public class TestPathologicDescription {
 		assertTrue(foundpatho2);
 		assertTrue(foundpatho3);
 	}
-	
+
 	@Test
-	public void testAnalyticaHL7NotNumeric() throws IOException{
+	public void testAnalyticaHL7NotNumeric() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
 		// set the use local config to true
 		CoreHub.userCfg.set(Preferences.LABSETTINGS_CFG_LOCAL_REFVALUES, true);
-		
-		parseOneHL7file(new File(workDir.toString(), "Analytica/0216370074_6417526401671.hl7"),
-			false, true);
+
+		parseOneHL7file(new File(workDir.toString(), "Analytica/0216370074_6417526401671.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
 		List<LabResult> qrr = qr.execute();
@@ -149,14 +149,14 @@ public class TestPathologicDescription {
 		}
 		assertTrue(foundpatho1);
 	}
-	
+
 	@Test
-	public void testAnalyticaHL7UseRef() throws IOException{
+	public void testAnalyticaHL7UseRef() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
 		// set the use local config to false
 		CoreHub.userCfg.set(Preferences.LABSETTINGS_CFG_LOCAL_REFVALUES, false);
-		
+
 		parseOneHL7file(new File(workDir.toString(), "Analytica/01TEST5005.hl7"), false, true);
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		qr.orderBy(false, LabResult.ITEM_ID, LabResult.DATE, LabResult.RESULT);
@@ -209,15 +209,14 @@ public class TestPathologicDescription {
 		assertTrue(foundpatho2);
 		assertTrue(foundpatho3);
 	}
-	
+
 	@Test
-	public void testAnalyticaStringResults_10786() throws IOException{
+	public void testAnalyticaStringResults_10786() throws IOException {
 		removeAllPatientsAndDependants();
 		removeAllLaboWerte();
-		
-		parseOneHL7file(new File(workDir.toString(), "Analytica/0116294364_6412642631625.hl7"),
-			false, true);
-		
+
+		parseOneHL7file(new File(workDir.toString(), "Analytica/0116294364_6412642631625.hl7"), false, true);
+
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		List<LabResult> qrr = qr.execute();
 		assertEquals(7, qrr.size());
@@ -225,7 +224,8 @@ public class TestPathologicDescription {
 			assertEquals(LabItemTyp.TEXT, labResult.getItem().getTyp());
 			PathologicDescription pathologicDescription = labResult.getPathologicDescription();
 			if (labResult.getItem().getLabel().contains("Borrelien (IgM)")) {
-				// OBX|500505|FT|BORRM^Borrelien (IgM)^^^BORRELIEN IGM||positiv||  negativ||||C||||||
+				// OBX|500505|FT|BORRM^Borrelien (IgM)^^^BORRELIEN IGM||positiv||
+				// negativ||||C||||||
 				assertEquals(Description.PATHO_NOREF, pathologicDescription.getDescription());
 				assertEquals("negativ", pathologicDescription.getReference());
 				assertEquals("positiv", labResult.getResult());
@@ -238,28 +238,28 @@ public class TestPathologicDescription {
 				assertEquals("hund", pathologicDescription.getReference());
 				assertEquals("katze", labResult.getResult());
 				assertEquals(0, labResult.getFlags());
-			}else if (labResult.getItem().getLabel().equalsIgnoreCase("TestImportHighFlag")) {
+			} else if (labResult.getItem().getLabel().equalsIgnoreCase("TestImportHighFlag")) {
 				assertEquals(Description.PATHO_IMPORT, pathologicDescription.getDescription());
 				assertEquals("bar", pathologicDescription.getReference());
 				assertEquals("foo", labResult.getResult());
 				assertEquals(1, labResult.getFlags());
 			}
-			
+
 		}
-		
+
 	}
-	
-	private void parseOneHL7file(File f, boolean deleteAll, boolean alsoFailing) throws IOException{
+
+	private void parseOneHL7file(File f, boolean deleteAll, boolean alsoFailing) throws IOException {
 		String name = f.getAbsolutePath();
 		if (f.canRead() && (name.toLowerCase().endsWith(".hl7"))) {
 			if (f.getName().equalsIgnoreCase("01TEST5005.hl7")
-				|| f.getName().equalsIgnoreCase("1_Kunde_20090612083757162_10009977_.HL7")) {
+					|| f.getName().equalsIgnoreCase("1_Kunde_20090612083757162_10009977_.HL7")) {
 				if (!alsoFailing) {
 					// System.out.println("Skipping " + name);
 					return;
 				}
 			}
-			// System.out.println("parseOneHL7file " + name + "  " + f.length() + " bytes ");
+			// System.out.println("parseOneHL7file " + name + " " + f.length() + " bytes ");
 			Result<?> rs = hlp.importFile(f, f.getParentFile(), true);
 			if (!rs.isOK()) {
 				String info = "Datei " + name + " fehlgeschlagen";
@@ -281,8 +281,8 @@ public class TestPathologicDescription {
 			System.out.println("Skipping Datei " + name);
 		}
 	}
-	
-	static private void removeAllLaboWerte(){
+
+	static private void removeAllLaboWerte() {
 		Query<LabResult> qr = new Query<LabResult>(LabResult.class);
 		List<LabResult> qrr = qr.execute();
 		for (int j = 0; j < qrr.size(); j++) {
@@ -306,14 +306,14 @@ public class TestPathologicDescription {
 		qLi = qrli.execute();
 		assertEquals(0, qLi.size());
 	}
-	
-	static private void removeAllPatientsAndDependants(){
+
+	static private void removeAllPatientsAndDependants() {
 		Query<Patient> qr = new Query<Patient>(Patient.class);
 		List<Patient> qrr = qr.execute();
 		for (int j = 0; j < qrr.size(); j++) {
 			qrr.get(j).delete(true);
 		}
-		
+
 		qr = new Query<Patient>(Patient.class);
 		qrr = qr.execute();
 	}

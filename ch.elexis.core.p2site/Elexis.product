@@ -77,9 +77,15 @@
    </configurations>
 
    <repositories>
+<<<<<<< HEAD
       <repository location="https://download.elexis.info/elexis/master/p2/elexis-3-core" enabled="true" name="Elexis-3-core"/>
       <repository location="https://download.elexis.info/elexis/master/p2/elexis-3-base" enabled="true" name="Elexis-3-Base" />
       <repository location="https://download.elexis.info/elexis/master/p2/elexis.3.gpl/" enabled="true" name="Elexis-3-GPL (J.Sigle)" />
+=======
+      <repository location="https://download.elexis.info/elexis/3.4/p2/elexis-3-core" enabled="true" name="Elexis-3-core"/>
+      <repository location="https://download.elexis.info/elexis/3.4/p2/elexis-3-base" enabled="true" name="Elexis-3-Base" />
+      <repository location="https://download.elexis.info/elexis/3.4/p2/elexis.3.gpl/" enabled="true" name="Elexis-3-GPL (J.Sigle)" />
+>>>>>>> 3c1a4ac1c0dc0ed3b74bf940acbff79cbe88d06e
    </repositories>
 
    <preferencesInfo>

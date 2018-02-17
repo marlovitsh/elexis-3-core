@@ -18,6 +18,9 @@
    <feature url="features/ch.elexis.core.common.feature_3.5.0.qualifier.jar" id="ch.elexis.core.common.feature" version="3.5.0.qualifier">
       <category name="elexis_3_core"/>
    </feature>
+<<<<<<< HEAD
     <bundle  id="ch.elexis.core.data.tests" version="3.2.0.qualifier"> </bundle>
+=======
+>>>>>>> 3c1a4ac1c0dc0ed3b74bf940acbff79cbe88d06e
    <category-def name="elexis_3_core" label="Elexis 3 Kern"/>
 </site>
