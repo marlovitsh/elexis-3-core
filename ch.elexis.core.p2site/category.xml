@@ -19,8 +19,13 @@
       <category name="elexis_3_core"/>
    </feature>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <bundle  id="ch.elexis.core.data.tests" version="3.2.0.qualifier"> </bundle>
 =======
 >>>>>>> 3c1a4ac1c0dc0ed3b74bf940acbff79cbe88d06e
+=======
+   <bundle id="ch.elexis.core.data.tests" version="3.2.0.qualifier"/>
+   <bundle id="ch.elexis.core.ui.usage" version="1.0.0.qualifier"/>
+>>>>>>> 49b89cd299772a1be706b48ec2454906b2105e8c
    <category-def name="elexis_3_core" label="Elexis 3 Kern"/>
 </site>
