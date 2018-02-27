@@ -74,15 +74,16 @@ public class LaborResultsLabelProvider extends ColumnLabelProvider {
 	}
 	
 	private String getPathologicString(LabResult labResult){
+		PathologicDescription pathologicDescription = labResult.getPathologicDescription();
 		StringBuilder sb = new StringBuilder();
 		if (labResult.isFlag(LabResultConstants.PATHOLOGIC)) {
 			sb.append("pathologisch");
 		} else {
 			sb.append("nicht pathologisch");
 		}
-		PathologicDescription description = labResult.getPathologicDescription();
-		if (description != null && !(description.getDescription() == Description.UNKNOWN)) {
-			sb.append(" - ").append(description.getLabel());
+		if (pathologicDescription != null
+			&& !(pathologicDescription.getDescription() == Description.UNKNOWN)) {
+			sb.append(" - ").append(pathologicDescription.getLabel());
 		}
 		return sb.toString();
 	}

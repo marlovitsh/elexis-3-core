@@ -237,7 +237,7 @@ public class TestPathologicDescription {
 				assertEquals("hund", pathologicDescription.getReference());
 				assertEquals("katze", labResult.getResult());
 				assertEquals(0, labResult.getFlags());
-			}else if (labResult.getItem().getLabel().equalsIgnoreCase("TestImportHighFlag")) {
+			} else if (labResult.getItem().getLabel().equalsIgnoreCase("TestImportHighFlag")) {
 				assertEquals(Description.PATHO_IMPORT, pathologicDescription.getDescription());
 				assertEquals("bar", pathologicDescription.getReference());
 				assertEquals("foo", labResult.getResult());

@@ -97,11 +97,11 @@ public class LabResult extends PersistentObject implements ILabResult {
 	}
 	
 	protected LabResult(){}
-
+	
 	protected LabResult(final String id){
 		super(id);
 	}
-
+	
 	/**
 	 * @since 3.2
 	 */
@@ -111,12 +111,11 @@ public class LabResult extends PersistentObject implements ILabResult {
 		String[] fields = {
 			PATIENT_ID, DATE, ITEM_ID, RESULT, COMMENT
 		};
-		String[] vals =
-			new String[] {
-				p.getId(),
-				date == null ? new TimeTool().toString(TimeTool.DATE_GER) : date
-					.toString(TimeTool.DATE_GER), item.getId(), result, comment
-			};
+		String[] vals = new String[] {
+			p.getId(), date == null ? new TimeTool().toString(TimeTool.DATE_GER)
+					: date.toString(TimeTool.DATE_GER),
+			item.getId(), result, comment
+		};
 		set(fields, vals);
 		// do we have an initial reference value?
 		
@@ -131,7 +130,7 @@ public class LabResult extends PersistentObject implements ILabResult {
 		}
 		addToUnseen();
 	}
-
+	
 	/**
 	 * Creates a new LabResult. If the type is numeric, a pathologic check will be applied.
 	 * 
@@ -153,12 +152,11 @@ public class LabResult extends PersistentObject implements ILabResult {
 		String[] fields = {
 			PATIENT_ID, DATE, ITEM_ID, RESULT, COMMENT
 		};
-		String[] vals =
-			new String[] {
-				p.getId(),
-				date == null ? new TimeTool().toString(TimeTool.DATE_GER) : date
-					.toString(TimeTool.DATE_GER), item.getId(), result, comment
-			};
+		String[] vals = new String[] {
+			p.getId(), date == null ? new TimeTool().toString(TimeTool.DATE_GER)
+					: date.toString(TimeTool.DATE_GER),
+			item.getId(), result, comment
+		};
 		set(fields, vals);
 		// do we have an initial reference value?
 		if (refVal != null) {
@@ -212,8 +210,9 @@ public class LabResult extends PersistentObject implements ILabResult {
 				}
 				return true;
 			}
-			if(updateDescription) {
-				setPathologicDescription(new PathologicDescription(Description.PATHO_ABSOLUT, result));
+			if (updateDescription) {
+				setPathologicDescription(
+					new PathologicDescription(Description.PATHO_ABSOLUT, result));
 			}
 			return false;
 		} else {
@@ -366,9 +365,9 @@ public class LabResult extends PersistentObject implements ILabResult {
 		while (time.length() < 6) {
 			time += StringConstants.ZERO;
 		}
-		return new TimeTool(date + StringConstants.SPACE + time.substring(0, 2)
-			+ StringConstants.COLON + time.substring(2, 4) + StringConstants.COLON
-			+ time.substring(4, 6));
+		return new TimeTool(
+			date + StringConstants.SPACE + time.substring(0, 2) + StringConstants.COLON
+				+ time.substring(2, 4) + StringConstants.COLON + time.substring(4, 6));
 	}
 	
 	public ILabItem getItem(){
@@ -384,9 +383,8 @@ public class LabResult extends PersistentObject implements ILabResult {
 		if (getItem().getTyp() == LabItemTyp.FORMULA) {
 			String value = null;
 			// get the LabOrder for this LabResult
-			List<LabOrder> orders =
-				LabOrder.getLabOrders((String) null, (String) null, getItem(), this, null, null,
-					null);
+			List<LabOrder> orders = LabOrder.getLabOrders((String) null, (String) null, getItem(),
+				this, null, null, null);
 			if (orders != null && !orders.isEmpty()) {
 				value = evaluteWithOrderContext(orders.get(0));
 			}
@@ -405,7 +403,7 @@ public class LabResult extends PersistentObject implements ILabResult {
 	private String evaluteWithOrderContext(LabOrder order){
 		String ret = null;
 		try {
-			ret = ((LabItem)getItem()).evaluate(getPatient(), order.getLabResults());
+			ret = ((LabItem) getItem()).evaluate(getPatient(), order.getLabResults());
 		} catch (ElexisException e) {
 			ret = "?formel?"; //$NON-NLS-1$
 		}
@@ -415,7 +413,7 @@ public class LabResult extends PersistentObject implements ILabResult {
 	private String evaluateWithDateContext(TimeTool time){
 		String ret = null;
 		try {
-			ret = ((LabItem)getItem()).evaluate(getPatient(), time);
+			ret = ((LabItem) getItem()).evaluate(getPatient(), time);
 		} catch (ElexisException e) {
 			ret = "?formel?"; //$NON-NLS-1$
 		}
@@ -435,7 +433,7 @@ public class LabResult extends PersistentObject implements ILabResult {
 		return checkNull(get(COMMENT));
 	}
 	
-	public void setComment(String comment) {
+	public void setComment(String comment){
 		set(COMMENT, comment);
 	}
 	
@@ -481,7 +479,7 @@ public class LabResult extends PersistentObject implements ILabResult {
 	public void setFlags(int value){
 		set(FLAGS, Integer.toString(value));
 	}
-
+	
 	public String getUnit(){
 		String ret = checkNull(get(UNIT));
 		if (ret.isEmpty()) {
@@ -702,9 +700,8 @@ public class LabResult extends PersistentObject implements ILabResult {
 		n.add(getId());
 		TimeTool limit = new TimeTool();
 		try { // We need to catch wrong formatted numbers in KEEP_UNSEEN
-			limit.addHours(-24
-				* Integer.parseInt(CoreHub.globalCfg.get(
-					Preferences.LABSETTINGS_CFG_KEEP_UNSEEN_LAB_RESULTS,
+			limit.addHours(-24 * Integer
+				.parseInt(CoreHub.globalCfg.get(Preferences.LABSETTINGS_CFG_KEEP_UNSEEN_LAB_RESULTS,
 					Preferences.DAYS_TO_KEEP_UNSEEN_LAB_RESULTS)));
 		} catch (NumberFormatException nex) {
 			ExHandler.handle(nex);
@@ -776,18 +773,18 @@ public class LabResult extends PersistentObject implements ILabResult {
 	@Override
 	public IContact getOriginContact(){
 		Kontakt origin = getOrigin();
-		if(origin==null) {
+		if (origin == null) {
 			return null;
 		}
 		return new ContactBean(origin);
 	}
-
+	
 	@Override
 	public void setOriginContact(IContact value){
 		Kontakt load = Kontakt.load(value.getId());
 		setOrigin(load);
 	}
-
+	
 	public void setOrigin(Kontakt origin){
 		if (origin != null && origin.exists()) {
 			set(ORIGIN_ID, origin.getId());
@@ -942,5 +939,5 @@ public class LabResult extends PersistentObject implements ILabResult {
 			labResult.setObservationTime(to);
 		}
 	}
-
+	
 }
