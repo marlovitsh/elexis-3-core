@@ -12,8 +12,10 @@
  *******************************************************************************/
 package ch.elexis.core.ui.preferences;
 
+import java.sql.ResultSet;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -70,9 +72,11 @@ import ch.elexis.core.ui.preferences.inputs.MultiplikatorEditor;
 import ch.elexis.core.ui.util.ListDisplay;
 import ch.elexis.core.ui.util.Log;
 import ch.elexis.core.ui.util.SWTHelper;
+import ch.elexis.data.DBConnection;
 import ch.elexis.data.Fall;
 import ch.elexis.data.PersistentObject;
 import ch.rgw.tools.JdbcLink;
+import ch.rgw.tools.JdbcLink.Stm;
 import ch.rgw.tools.StringTool;
 import ch.rgw.tools.TimeTool;
 
@@ -81,10 +85,10 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 	private static final String ARGUMENTSSDELIMITER = ":"; //$NON-NLS-1$
 	private static final String ITEMDELIMITER = "\t"; //$NON-NLS-1$
 	private static final String FOURLINESPLACEHOLDER = "\n\n\n\nd"; //$NON-NLS-1$
-	List<IConfigurationElement> lo = Extensions
-		.getExtensions(ExtensionPointConstantsData.RECHNUNGS_MANAGER); //$NON-NLS-1$
-	List<IConfigurationElement> ll = Extensions
-		.getExtensions(ExtensionPointConstantsUi.VERRECHNUNGSCODE); //$NON-NLS-1$
+	List<IConfigurationElement> lo =
+		Extensions.getExtensions(ExtensionPointConstantsData.RECHNUNGS_MANAGER); //$NON-NLS-1$
+	List<IConfigurationElement> ll =
+		Extensions.getExtensions(ExtensionPointConstantsUi.VERRECHNUNGSCODE); //$NON-NLS-1$
 	String[] systeme = CoreHub.globalCfg.nodes(Preferences.LEISTUNGSCODES_CFG_KEY);
 	Table table;
 	String[] tableCols = {
@@ -200,8 +204,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 					bCheckZero.getSelection());
 			}
 		});
-		bCheckZero.setSelection(CoreHub.userCfg.get(Preferences.LEISTUNGSCODES_BILLING_ZERO_CHECK,
-			false));
+		bCheckZero.setSelection(
+			CoreHub.userCfg.get(Preferences.LEISTUNGSCODES_BILLING_ZERO_CHECK, false));
 		bCheckZero.setLayoutData(SWTHelper.getFillGridData(2, true, 1, false));
 		
 		bStrictCheck = new Button(ret, SWT.CHECK);
@@ -213,8 +217,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 					bStrictCheck.getSelection());
 			}
 		});
-		bStrictCheck.setSelection(CoreHub.userCfg.get(Preferences.LEISTUNGSCODES_BILLING_STRICT,
-			true));
+		bStrictCheck
+			.setSelection(CoreHub.userCfg.get(Preferences.LEISTUNGSCODES_BILLING_STRICT, true));
 		bStrictCheck.setLayoutData(SWTHelper.getFillGridData(2, true, 1, false));
 		
 		final Button bOptify = new Button(ret, SWT.CHECK);
@@ -242,7 +246,6 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 		bOptifyXray.setSelection(CoreHub.userCfg.get(Preferences.LEISTUNGSCODES_OPTIFY_XRAY, true));
 		bOptifyXray.setLayoutData(SWTHelper.getFillGridData(2, true, 1, false));
 		
-
 		// *** checkbox for enforcing separate Fall for obligations and non obligations
 		final Button bObligation = new Button(ret, SWT.CHECK);
 		bObligation.setText(Messages.Leistungscodes_separateObligations);
@@ -271,6 +274,43 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 		bRemoveOpenReminders
 			.setSelection(CoreHub.globalCfg.get(Preferences.RNN_REMOVE_OPEN_REMINDER, false));
 		bRemoveOpenReminders.setLayoutData(SWTHelper.getFillGridData(2, true, 1, false));
+		
+		// +++++ START
+		String OP_KUERZEL = "'0000','0045','0049','0050','0051'";
+		Label lblOP = new Label(ret, SWT.NONE);
+		lblOP.setText("OP-Typ: ");
+		final Combo cOPType = new Combo(ret, SWT.READ_ONLY);
+		// *** save by kuerzel/number since text may change over time and with language
+		String[] items = {};
+		DBConnection dbConnection = PersistentObject.getDefaultConnection();
+		Stm stm = null;
+		try {
+			stm = dbConnection.getStatement();
+			ResultSet rs = stm.query(
+				"SELECT titel FROM TARMED_DEFINITIONEN WHERE deleted='0' AND  Spalte = 'SPARTE'  AND  Kuerzel in ("
+					+ OP_KUERZEL + ")  and law = ''");
+			ArrayList<String> myArray = new ArrayList<String>();
+			myArray.add("-");
+			while (rs.next())
+				myArray.add(rs.getString(1));
+			items = myArray.toArray(new String[myArray.size()]);
+		} catch (Exception ex) {} finally {
+			dbConnection.releaseStatement(stm);
+		}
+		cOPType.setItems(items);
+		cOPType.select(0);
+		String[] op_kuerzel_arr = OP_KUERZEL.replace("'", "").split(",");
+		cOPType.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(final SelectionEvent e){
+				CoreHub.globalCfg.set("billing/optype",
+					op_kuerzel_arr[cOPType.getSelectionIndex()]);
+			}
+		});
+		String savedKuerzel = CoreHub.globalCfg.get("billing/optype", "0");
+		List<String> adf = Arrays.asList(op_kuerzel_arr);
+		cOPType.select(adf.indexOf(savedKuerzel));
+		// +++++ END
 		
 		// *** populate the table with items
 		reload();
@@ -334,27 +374,21 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 	 * <br>
 	 * <b> for text: </b>
 	 * <ul>
-	 * <li>
-	 * checkbox for multiline text input</li>
-	 * <li>
-	 * checkbox for styled text input</li>
+	 * <li>checkbox for multiline text input</li>
+	 * <li>checkbox for styled text input</li>
 	 * </ul>
 	 * <b> for date: </b>
 	 * <ul>
-	 * <li>
-	 * simple text input</li>
+	 * <li>simple text input</li>
 	 * </ul>
 	 * <b> for combo, list, radiogroup: </b>
 	 * <ul>
-	 * <li>
-	 * field displayed for entering item values</li>
-	 * <li>
-	 * checkbox for saving as numeric value</li>
+	 * <li>field displayed for entering item values</li>
+	 * <li>checkbox for saving as numeric value</li>
 	 * </ul>
 	 * <b> for checkboxes: </b>
 	 * <ul>
-	 * <li>
-	 * field displayed for entering item values</li>
+	 * <li>field displayed for entering item values</li>
 	 * </ul>
 	 * <br>
 	 * 
@@ -441,12 +475,14 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 			cHasNumericCheckbox = false;
 			cHasStyledCheckbox = false;
 			cHasMultilineCheckbox = false;
-			if (cCurrentFieldType.equalsIgnoreCase(Messages.Leistungscodes_contactHL)) {} else if (cCurrentFieldType
-				.equalsIgnoreCase(Messages.Leistungscodes_textHL)) {
+			if (cCurrentFieldType
+				.equalsIgnoreCase(Messages.Leistungscodes_contactHL)) {} else if (cCurrentFieldType
+					.equalsIgnoreCase(Messages.Leistungscodes_textHL)) {
 				cHasStyledCheckbox = true;
 				cHasMultilineCheckbox = true;
-			} else if (cCurrentFieldType.equalsIgnoreCase(Messages.Leistungscodes_dateHL)) {} else if (cCurrentFieldType
-				.equalsIgnoreCase(Messages.Leistungscodes_comboHL)) {
+			} else if (cCurrentFieldType
+				.equalsIgnoreCase(Messages.Leistungscodes_dateHL)) {} else if (cCurrentFieldType
+					.equalsIgnoreCase(Messages.Leistungscodes_comboHL)) {
 				cHasTextEditor = true;
 				cHasNumericCheckbox = true;
 			} else if (cCurrentFieldType.equalsIgnoreCase(Messages.Leistungscodes_listHL)) {
@@ -536,8 +572,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 			// *** add change fieldType combo
 			if (cChangeTypeItems != null) {
 				// *** placeholder
-				new Label(ret, SWT.SEPARATOR | SWT.HORIZONTAL).setLayoutData(SWTHelper
-					.getFillGridData(2, true, 1, false));
+				new Label(ret, SWT.SEPARATOR | SWT.HORIZONTAL)
+					.setLayoutData(SWTHelper.getFillGridData(2, true, 1, false));
 				Label currentTypeLabel = new Label(ret, SWT.NONE);
 				currentTypeLabel.setText("Aktueller Feldtyp: "); //$NON-NLS-1$);
 				Label currentType = new Label(ret, SWT.NONE);
@@ -586,35 +622,27 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 		 * validate input if not ok then display error message and return false, <br>
 		 * else create result as String[] containing:
 		 * <ul>
-		 * <li>
-		 * [0] fieldName</li>
-		 * <li>
-		 * [1] options for combo/list/checkboxes/radiogroup</li>
-		 * <li>
-		 * [2] boolean numeric</li>
-		 * <li>
-		 * [3] boolean multiline</li>
-		 * <li>
-		 * [4] boolean styled text</li>
-		 * <li>
-		 * [5] String new field type</li>
-		 * <li>
-		 * [6] boolean billing system disabled</li>
+		 * <li>[0] fieldName</li>
+		 * <li>[1] options for combo/list/checkboxes/radiogroup</li>
+		 * <li>[2] boolean numeric</li>
+		 * <li>[3] boolean multiline</li>
+		 * <li>[4] boolean styled text</li>
+		 * <li>[5] String new field type</li>
+		 * <li>[6] boolean billing system disabled</li>
 		 */
 		@Override
 		protected void okPressed(){
 			// *** build result String Array
 			result = new String[7];
 			result[0] = tName.getText();
-			result[1] =
-				(tTextEditor == null || tTextEditor.isDisposed()) ? StringTool.leer : tTextEditor
-					.getText();
-			result[2] =
-				(chNumeric == null || chNumeric.isDisposed()) ? "0" : ((chNumeric.getSelection()) ? "1" : "0"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			result[3] =
-				(chMultiline == null || chMultiline.isDisposed()) ? "0" : ((chMultiline.getSelection()) ? "1" : "0"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			result[4] =
-				(chStyled == null || chStyled.isDisposed()) ? "0" : ((chStyled.getSelection()) ? "1" : "0"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			result[1] = (tTextEditor == null || tTextEditor.isDisposed()) ? StringTool.leer
+					: tTextEditor.getText();
+			result[2] = (chNumeric == null || chNumeric.isDisposed()) ? "0" //$NON-NLS-1$
+					: ((chNumeric.getSelection()) ? "1" : "0"); //$NON-NLS-1$ //$NON-NLS-2$
+			result[3] = (chMultiline == null || chMultiline.isDisposed()) ? "0" //$NON-NLS-1$
+					: ((chMultiline.getSelection()) ? "1" : "0"); //$NON-NLS-1$ //$NON-NLS-2$
+			result[4] = (chStyled == null || chStyled.isDisposed()) ? "0" //$NON-NLS-1$
+					: ((chStyled.getSelection()) ? "1" : "0"); //$NON-NLS-1$ //$NON-NLS-2$
 			result[5] = cCurrentFieldType;
 			result[6] = cBilllingSystemDisabled;
 			
@@ -650,8 +678,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 							errorString = errorString + Messages.Leistungscodes_ErrorAtLeast2Items;
 						}
 						if (!tmp.isEmpty()) {
-							if ((tmp.substring(0, 1).equalsIgnoreCase(DEFINITIONSDELIMITER))
-								|| (tmp.indexOf(DEFINITIONSDELIMITER + DEFINITIONSDELIMITER) >= 0)) {
+							if ((tmp.substring(0, 1).equalsIgnoreCase(DEFINITIONSDELIMITER)) || (tmp
+								.indexOf(DEFINITIONSDELIMITER + DEFINITIONSDELIMITER) >= 0)) {
 								errorString =
 									errorString + Messages.Leistungscodes_ErrorNoEmptyItemsAllowed;
 							}
@@ -760,8 +788,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 			cbDisabled.setText(Messages.Leistungscodes_systemDisabled);
 			
 			// *** separator
-			new Label(ret, SWT.SEPARATOR | SWT.HORIZONTAL).setLayoutData(SWTHelper.getFillGridData(
-				2, true, 1, false));
+			new Label(ret, SWT.SEPARATOR | SWT.HORIZONTAL)
+				.setLayoutData(SWTHelper.getFillGridData(2, true, 1, false));
 			
 			// *** setting the values
 			String name = "default"; //$NON-NLS-1$
@@ -817,9 +845,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 					
 					public void hyperlinkActivated(String l){
 						String msg = Messages.Leistungscodes_pleaseEnterNameAndValue;
-						InputDialog inp =
-							new InputDialog(getShell(), l + Messages.Leistungscodes_add, msg,
-								StringTool.leer, null); //$NON-NLS-1$
+						InputDialog inp = new InputDialog(getShell(),
+							l + Messages.Leistungscodes_add, msg, StringTool.leer, null); //$NON-NLS-1$
 						if (inp.open() == Dialog.OK) {
 							String[] req = inp.getValue().split("="); //$NON-NLS-1$
 							if (req.length != 2) {
@@ -907,8 +934,7 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 				fdUnused.addMoveToAction(ldRequirements,
 					Messages.Leistungscodes_moveItemToRequiredData,
 					Images.IMG_MOVETOUPPERLIST.getImageDescriptor(), true);
-				fdUnused.addMoveToAction(ldOptional,
-					Messages.Leistungscodes_moveItemToOptionalData,
+				fdUnused.addMoveToAction(ldOptional, Messages.Leistungscodes_moveItemToOptionalData,
 					Images.IMG_MOVETOLOWERLIST.getImageDescriptor(), true);
 				fdUnused.setNoDuplicatesList(ldRequirements, ldOptional);
 				fdUnused.setNoDuplicatesCreateList(ldRequirements, ldOptional);
@@ -1140,10 +1166,10 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 			if (toolBar != null) {
 				Short newItemIx = (short) (LASTFIXEDITEM + additionalItemsCount + 1);
 				moveTo_DestinationLists.add(destinationList);
-				addToolItem(toolBar, imageDescriptor.createImage(), toolTipText, newItemIx, enabled);
-				ListPopUpMenuAction newAction =
-					new ListPopUpMenuAction(toolTipText, imageDescriptor, toolTipText, newItemIx,
-						destinationList, enabled);
+				addToolItem(toolBar, imageDescriptor.createImage(), toolTipText, newItemIx,
+					enabled);
+				ListPopUpMenuAction newAction = new ListPopUpMenuAction(toolTipText,
+					imageDescriptor, toolTipText, newItemIx, destinationList, enabled);
 				IAction[] extended = new IAction[LASTFIXEDITEM + additionalItemsCount + 1 + 1];
 				System.arraycopy(actions, 0, extended, 0, LASTFIXEDITEM + additionalItemsCount + 1);
 				extended[LASTFIXEDITEM + additionalItemsCount + 1] = newAction;
@@ -1216,22 +1242,18 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 			addToolItem(toolBar, null, Messages.Leistungscodes_moveItemDown, -1, false);
 			
 			// ****** create popupmenu for this list (same actions)
-			ListPopUpMenuAction moveItemUpAction =
-				new ListPopUpMenuAction(Messages.Leistungscodes_moveItemUp,
-					Images.IMG_ARROWUP.getImageDescriptor(), Messages.Leistungscodes_moveItemUp,
-					MOVEITEMUP, listDisplay, true);
-			ListPopUpMenuAction moveItemDownAction =
-				new ListPopUpMenuAction(Messages.Leistungscodes_moveItemDown,
-					Images.IMG_ARROWDOWN.getImageDescriptor(),
-					Messages.Leistungscodes_moveItemDown, MOVEITEMDOWN, listDisplay, true);
-			ListPopUpMenuAction delItemAction =
-				new ListPopUpMenuAction(Messages.Leistungscodes_deleteAction,
-					Images.IMG_REMOVEITEM.getImageDescriptor(),
-					Messages.Leistungscodes_removeConstraintTT, DELETEITEM, listDisplay, true);
-			ListPopUpMenuAction changeItemAction =
-				new ListPopUpMenuAction(Messages.Leistungscodes_editItem,
-					Images.IMG_EDIT.getImageDescriptor(), Messages.Leistungscodes_editItem,
-					EDITITEM, listDisplay, true);
+			ListPopUpMenuAction moveItemUpAction = new ListPopUpMenuAction(
+				Messages.Leistungscodes_moveItemUp, Images.IMG_ARROWUP.getImageDescriptor(),
+				Messages.Leistungscodes_moveItemUp, MOVEITEMUP, listDisplay, true);
+			ListPopUpMenuAction moveItemDownAction = new ListPopUpMenuAction(
+				Messages.Leistungscodes_moveItemDown, Images.IMG_ARROWDOWN.getImageDescriptor(),
+				Messages.Leistungscodes_moveItemDown, MOVEITEMDOWN, listDisplay, true);
+			ListPopUpMenuAction delItemAction = new ListPopUpMenuAction(
+				Messages.Leistungscodes_deleteAction, Images.IMG_REMOVEITEM.getImageDescriptor(),
+				Messages.Leistungscodes_removeConstraintTT, DELETEITEM, listDisplay, true);
+			ListPopUpMenuAction changeItemAction = new ListPopUpMenuAction(
+				Messages.Leistungscodes_editItem, Images.IMG_EDIT.getImageDescriptor(),
+				Messages.Leistungscodes_editItem, EDITITEM, listDisplay, true);
 			actions[MOVEITEMUP] = moveItemUpAction;
 			actions[MOVEITEMDOWN] = moveItemDownAction;
 			actions[2] = null;
@@ -1470,7 +1492,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 				default:
 					if (type > LASTFIXEDITEM) {
 						moveItemToOtherList(listDisplay,
-							moveTo_DestinationLists.get(type - LASTFIXEDITEM - 1), noDuplicatesList);
+							moveTo_DestinationLists.get(type - LASTFIXEDITEM - 1),
+							noDuplicatesList);
 					}
 					break;
 				}
@@ -1501,7 +1524,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 			 * @since 3.0.0 constructor signature changed to ImageDescriptor
 			 */
 			public ListPopUpMenuAction(String actionName, ImageDescriptor imageDescriptor,
-				String toolTipText, int actionType, ListDisplay<String> listDisplay, boolean enabled){
+				String toolTipText, int actionType, ListDisplay<String> listDisplay,
+				boolean enabled){
 				super(actionName);
 				this.actionType = actionType;
 				setImageDescriptor(imageDescriptor);
@@ -1573,18 +1597,18 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 				} else if (l[1].equals("RN")) { //$NON-NLS-1$
 					type = Messages.Leistungscodes_radiogroupNumeric;
 				}
-				String opt =
-					(l.length >= 3) ? "   (" + l[2].replaceAll(ITEMDELIMITER, "; ") + ")" : StringTool.leer; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				String opt = (l.length >= 3) ? "   (" + l[2].replaceAll(ITEMDELIMITER, "; ") + ")" //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+						: StringTool.leer;
 				if (opt.trim().equalsIgnoreCase("(SQL)")) { //$NON-NLS-1$
-					opt =
-						(l.length >= 4) ? "   (SQL: " + l[3].replaceAll(ITEMDELIMITER, "; ") + ")" : StringTool.leer; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					opt = (l.length >= 4) ? "   (SQL: " + l[3].replaceAll(ITEMDELIMITER, "; ") + ")" //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+							: StringTool.leer;
 					return type + " " + l[0] + opt; //$NON-NLS-1$
 				} else {
 					return type + " " + l[0] + opt; //$NON-NLS-1$
 				}
 			} else {
-				String opt =
-					(l.length >= 3) ? "   (" + l[2].replaceAll(ITEMDELIMITER, "; ") + ")" : StringTool.leer; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				String opt = (l.length >= 3) ? "   (" + l[2].replaceAll(ITEMDELIMITER, "; ") + ")" //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+						: StringTool.leer;
 				return "? " + " " + l[0] + opt; //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
@@ -1640,19 +1664,18 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 				}
 			}
 			String msg = Messages.Leistungscodes_pleaseEnterName;
-			String[] changeItems =
-				{
-					Messages.Leistungscodes_contactHL, Messages.Leistungscodes_textHL,
-					Messages.Leistungscodes_dateHL, Messages.Leistungscodes_comboHL,
-					Messages.Leistungscodes_listHL, Messages.Leistungscodes_checkboxHL,
-					Messages.Leistungscodes_radioHL
-				};
+			String[] changeItems = {
+				Messages.Leistungscodes_contactHL, Messages.Leistungscodes_textHL,
+				Messages.Leistungscodes_dateHL, Messages.Leistungscodes_comboHL,
+				Messages.Leistungscodes_listHL, Messages.Leistungscodes_checkboxHL,
+				Messages.Leistungscodes_radioHL
+			};
 			AbrechnungsTypDialog_InputDialog inputDlg =
-				new AbrechnungsTypDialog_InputDialog(getShell(), ll
-					+ (isChanging ? Messages.Leistungscodes_changeTextInTitleBar
-							: Messages.Leistungscodes_add), msg, fieldName, noDuplicatesListCreate,
-					optionsIn, isNumericChecked, isStyledChecked, isMultilineChecked,
-					isChanging ? changeItems : null);
+				new AbrechnungsTypDialog_InputDialog(getShell(),
+					ll + (isChanging ? Messages.Leistungscodes_changeTextInTitleBar
+							: Messages.Leistungscodes_add),
+					msg, fieldName, noDuplicatesListCreate, optionsIn, isNumericChecked,
+					isStyledChecked, isMultilineChecked, isChanging ? changeItems : null);
 			if (inputDlg.open() == Dialog.OK) {
 				String[] result = inputDlg.getResult();
 				String req = result[0];
@@ -1663,7 +1686,8 @@ public class Leistungscodes extends PreferencePage implements IWorkbenchPreferen
 					// *** this is calculated on the fly in the view
 					// FallDetailBlatt2
 				}
-				if ((options.length() > 4) && (options.substring(0, 4).equalsIgnoreCase("SCRIPT:"))) { //$NON-NLS-1$
+				if ((options.length() > 4)
+					&& (options.substring(0, 4).equalsIgnoreCase("SCRIPT:"))) { //$NON-NLS-1$
 					// *** this is calculated on the fly in the view
 					// FallDetailBlatt2
 				}
