@@ -18,9 +18,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import ch.rgw.compress.CompEx;
+import ch.rgw.tools.VersionedResource.ResourceItem;
 
 /**
  * Eine VersionedResource ist ein Datenobjekt, das einen String-Inhalt so speichert, dass bei einer
@@ -168,4 +170,44 @@ public class VersionedResource {
 			return sb.toString();
 		}
 	}
+	
+	/**
+	 * ERSETZT eine bestehende Version eines Eintrages - wird ÜBERSCHRIEBEN. Dies ist nur zum
+	 * konvertieren gedacht!!! Ändert das eingetragene Datum NICHT.
+	 *
+	 * @param versionedResource
+	 *            die VersionedResource, die geändert werden soll
+	 * @param newValue
+	 *            der neue String
+	 * @param remark
+	 *            Ein kurzer Beschreibungstext für diese Version
+	 * @param versionIx
+	 *            der Index für die zu ersetzende Version
+	 * @return false, wenn kein updatze erfolgte
+	 */
+	public static boolean overwriteVersion(VersionedResource versionedResource, String newValue,
+		String remark, int versionIx){
+		// *** we use reflection to get the private field items...
+		Class<?> c = versionedResource.getClass();
+		Field itemsField;
+		try {
+			itemsField = c.getDeclaredField("items");
+			itemsField.setAccessible(true);
+			ArrayList<ResourceItem> items =
+				(ArrayList<ResourceItem>) itemsField.get(versionedResource);
+			ResourceItem oldItem = items.get(versionIx);
+			oldItem.data = newValue;
+			oldItem.remark = remark;
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
 }
