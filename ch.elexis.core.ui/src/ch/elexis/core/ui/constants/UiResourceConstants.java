@@ -24,6 +24,8 @@ public class UiResourceConstants {
 	
 	public static final String LaborView_ID = "ch.elexis.Labor";
 	public static final String PatientenListeView_ID = "ch.elexis.PatListView";
-	public static final String PatientDetailView2_ID = "ch.elexis.PatDetail_v2";
-	
+	// +++++ START use my PatientDetilView
+	// public static final String PatientDetailView2_ID = "ch.elexis.PatDetail_v2";
+	public static final String PatientDetailView2_ID = "ch.marlovits.PatDetail_v2";
+	// +++++ ENDuse my PatientDetilView
 }

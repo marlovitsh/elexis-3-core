@@ -101,7 +101,10 @@ public class ArticleDefaultSignature extends PersistentObject {
 		sb.append(getSignatureMorning()).append("-").append(getSignatureNoon()).append("-")
 			.append(getSignatureEvening()).append("-").append(getSignatureNight()).append(" ")
 			.append(getSignatureComment());
-		return null;
+		// ++++ START BUGFIX
+		return sb.toString();
+		// return null;
+		// ++++ END BUGFIX
 	}
 	
 	@Override
@@ -207,10 +210,17 @@ public class ArticleDefaultSignature extends PersistentObject {
 	public Artikel getArticle(){
 		String articleString = get(FLD_ARTICLE);
 		if (articleString != null && !articleString.isEmpty()) {
-			String[] parts = articleString.split("\\$");
-			if (parts.length == 3) {
+			// +++++ START BUG splitter wrong
+			// String[] parts = articleString.split("\\$");
+			// if (parts.length == 3) {
+			String[] parts = articleString.split("::");
+			// +++++ END BUG splitter wrong
+			if (parts.length == 2) {
 				PersistentObjectFactory factory = new PersistentObjectFactory();
-				PersistentObject ret = factory.createFromString(parts[2]);
+				// +++++ START BUG splitter wrong
+				// PersistentObject ret = factory.createFromString(parts[2]);
+				PersistentObject ret = factory.createFromString(articleString);
+				// +++++ END BUG splitter wrong
 				if (ret instanceof Artikel) {
 					return (Artikel) ret;
 				}

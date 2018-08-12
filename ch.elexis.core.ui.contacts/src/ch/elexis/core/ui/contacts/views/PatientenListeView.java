@@ -201,8 +201,7 @@ public class PatientenListeView extends ViewPart
 			@Override
 			public void doubleClick(DoubleClickEvent event){
 				try {
-					PatientDetailView2 pdv =
-						(PatientDetailView2) getSite().getPage().showView(PatientDetailView2.ID);
+					getSite().getPage().showView("ch.marlovits.PatDetail_v2");
 				} catch (PartInitException e) {
 					ExHandler.handle(e);
 				}
