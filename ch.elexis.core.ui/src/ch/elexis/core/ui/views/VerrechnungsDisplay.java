@@ -12,6 +12,7 @@
 
 package ch.elexis.core.ui.views;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
@@ -73,6 +74,7 @@ import ch.elexis.core.ui.util.SWTHelper;
 import ch.elexis.core.ui.views.codesystems.LeistungenView;
 import ch.elexis.data.Artikel;
 import ch.elexis.data.Eigenleistung;
+import ch.elexis.data.Fall;
 import ch.elexis.data.Konsultation;
 import ch.elexis.data.Leistungsblock;
 import ch.elexis.data.PersistentObject;
@@ -314,9 +316,41 @@ public class VerrechnungsDisplay extends Composite implements IUnlockable {
 		tVerr.setRedraw(true);
 		sdg.setLength(0);
 		sdg.append(Messages.VerrechnungsDisplay_billed).append(sum.getAmountAsString()).append(")"); //$NON-NLS-1$ //$NON-NLS-2$
+		// +++++ START show Falltotal
+		String amountDue = calcTotalAmount(b.getFall());
+		sdg.append(", Falltotal: " + amountDue);
+		// +++++ END show Falltotal
 		hVer.setText(sdg.toString());
 	}
 	
+	// +++++ START show Falltotal
+	/**
+	 * calc total amount for a case, return as "xxx.xx"
+	 * 
+	 * @param f
+	 *            Fall, case for which to calculate total amount
+	 * @return
+	 */
+	public static String calcTotalAmount(Fall f){
+		Konsultation[] konss = f.getBehandlungen(false);
+		Money totalCaseDue = new Money(0);
+		for (Konsultation kons : konss) {
+			List<Verrechnet> lgl2 = kons.getLeistungen();
+			for (Verrechnet lst : lgl2) {
+				int z = lst.getZahl();
+				Money preis = lst.getNettoPreis().multiply(z);
+				totalCaseDue.addMoney(preis);
+			}
+		}
+		Double due = totalCaseDue.getAmount();
+		Double dueEuro = (due / 1.4);
+		BigDecimal bd = new BigDecimal(dueEuro);
+		bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+		dueEuro = bd.doubleValue();
+		return "" + due;
+	}
+	// +++++ END show Falltotal
+
 	/**
 	 * Filter codes of {@link Verrechnet} where ID is used as code. This is relevant for {@link Eigenleistung} and Eigenartikel.
 	 * 
