@@ -316,9 +316,10 @@ public class VerrechnungsDisplay extends Composite implements IUnlockable {
 		tVerr.setRedraw(true);
 		sdg.setLength(0);
 		sdg.append(Messages.VerrechnungsDisplay_billed).append(sum.getAmountAsString()).append(")"); //$NON-NLS-1$ //$NON-NLS-2$
-		// +++++ START show Falltotal
+		// +++++ START show Falltotal and Minutes
 		String amountDue = calcTotalAmount(b.getFall());
-		sdg.append(", Falltotal: " + amountDue);
+		sdg.append(", " + b.getMinutes() + " Min");
+		sdg.append(",   Falltotal: " + amountDue + "sFr.");
 		// +++++ END show Falltotal
 		hVer.setText(sdg.toString());
 	}

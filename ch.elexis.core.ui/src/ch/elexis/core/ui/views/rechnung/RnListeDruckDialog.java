@@ -94,7 +94,8 @@ public class RnListeDruckDialog extends TitleAreaDialog implements ICallback {
 		table[i][0] = ""; //$NON-NLS-1$
 		table[i][1] = Messages.RnActions_sum; //$NON-NLS-1$
 		table[i][2] = sum.getAmountAsString();
-		text.getPlugin().setFont("Helvetica", SWT.NORMAL, 9); //$NON-NLS-1$
+		// ++++ following line disabled - causes crash in my environment - Ubuntu, Hilotec OpenDocument
+		// text.getPlugin().setFont("Helvetica", SWT.NORMAL, 9); //$NON-NLS-1$
 		text.getPlugin().insertTable("[Liste]", 0, table, new int[] { //$NON-NLS-1$
 			10, 80, 10
 		});
