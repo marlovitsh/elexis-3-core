@@ -218,7 +218,7 @@
             locationURI="menu:ch.elexis.core.ui.brief.send">
          <command
                commandId="ch.elexis.core.ui.commands.SendBriefAsMail"
-               label="als E-Mail"
+               label="als E-Mail___"
                style="push">
             <visibleWhen
                   checkEnabled="false">

@@ -265,6 +265,15 @@ public class TextContainer {
 				return brief;
 			}
 		} else {
+			// +++++ START PDF
+			String theMimeType = template.getMimeType();
+			ITextPlugin savedPlugin = null;
+			if (theMimeType.contains("pdf")) {
+				savedPlugin = plugin;
+				plugin = getPdfPlugin();
+			}
+			// +++++ END PDF
+				
 			if (plugin.loadFromByteArray(template.loadBinary(), true) == true) {
 				final Brief ret = new Brief(subject == null ? template.getBetreff() : subject, null,
 					CoreHub.actUser, adressat, kons, typ);
@@ -309,11 +318,48 @@ public class TextContainer {
 				});
 				saveBrief(ret, typ);
 				addBriefToKons(ret, kons);
+				// +++++ START PDF
+				if (savedPlugin != null)
+					plugin = savedPlugin;
+				// +++++ END PDF
 				return ret;
+			}
+			// +++++ START PDF
+			if (savedPlugin != null)
+				plugin = savedPlugin;
+			// +++++ END PDF
+		}
+		return null;
+	}
+	
+	// +++++ START PDF
+	protected ITextPlugin getPdfPlugin() {
+		String myExtensionToUse = "Marlovits pdf-templates";
+		
+		String ExtensionToUse = CoreHub.localCfg.get(Preferences.P_TEXTMODUL, null);
+		IExtensionRegistry exr = Platform.getExtensionRegistry();
+		IExtensionPoint exp =
+			exr.getExtensionPoint(ExtensionPointConstantsUi.TEXTPROCESSINGPLUGIN);
+		if (exp != null) {
+			IExtension[] extensions = exp.getExtensions();
+			for (IExtension ex : extensions) {
+				IConfigurationElement[] elems = ex.getConfigurationElements();
+				for (IConfigurationElement el : elems) {
+					System.out.println(el.getAttribute("name"));
+					if ((ExtensionToUse == null) || el.getAttribute("name").equals(
+						myExtensionToUse)) {
+						try {
+							return (ITextPlugin) el.createExecutableExtension("Klasse");
+						} catch (Exception e) {
+							ExHandler.handle(e);
+						}
+					}
+				}
 			}
 		}
 		return null;
 	}
+	// +++++ END PDF
 	
 	private Object replaceFields(final Brief brief, final String b){
 		String bl = b;
