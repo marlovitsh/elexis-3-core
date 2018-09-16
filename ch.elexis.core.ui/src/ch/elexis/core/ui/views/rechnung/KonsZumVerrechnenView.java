@@ -562,6 +562,9 @@ public class KonsZumVerrechnenView extends ViewPart implements ISaveablePart2 {
 				public void run(){
 					tSelection.clear();
 					tvSel.refresh();
+					// +++++ START
+					refreshAction.run();
+					// +++++ END
 				}
 			};
 		refreshAction = new Action(Messages.KonsZumVerrechnenView_reloadAction) { //$NON-NLS-1$
@@ -600,6 +603,9 @@ public class KonsZumVerrechnenView extends ViewPart implements ISaveablePart2 {
 						}
 						tvSel.refresh();
 						cv.notify(CommonViewer.Message.update);
+						// +++++ START
+						refreshAction.run();
+						// +++++ END
 					}
 				}
 			};
