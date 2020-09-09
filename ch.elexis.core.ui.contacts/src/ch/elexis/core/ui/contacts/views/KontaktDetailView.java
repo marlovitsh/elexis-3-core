@@ -13,6 +13,8 @@
 package ch.elexis.core.ui.contacts.views;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -20,11 +22,18 @@ import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.part.ViewPart;
 
 import ch.elexis.core.ui.actions.GlobalActions;
+import ch.elexis.core.ui.contacts.Activator;
 import ch.elexis.core.ui.util.ViewMenus;
+import ch.elexis.data.Kontakt;
 
 public class KontaktDetailView extends ViewPart implements ISaveablePart2 {
 	public static final String ID = "ch.elexis.KontaktDetailView"; //$NON-NLS-1$
 	KontaktBlatt kb;
+	
+	// +++++ START
+	public static Action actionShowEditPart;
+	boolean selected = false;
+	// +++++ END
 	
 	public KontaktDetailView(){
 		
@@ -35,9 +44,43 @@ public class KontaktDetailView extends ViewPart implements ISaveablePart2 {
 		parent.setLayout(new FillLayout());
 		kb = new KontaktBlatt(parent, SWT.NONE, getViewSite());
 		ViewMenus menu = new ViewMenus(getViewSite());
-		menu.createMenu(GlobalActions.printKontaktEtikette);
-		menu.createToolbar(GlobalActions.printKontaktEtikette);
-		
+		// +++++ START
+		//		menu.getContextMenu().add(GlobalActions.printKontaktEtikette);
+		actionShowEditPart = new Action("Suchmaske") {
+			{
+				setToolTipText("Suchmaske");
+				ImageDescriptor imageDescriptor = MarlovitsKontaktBlattExtension.getImageDescriptorByName(Activator.PLUGIN_ID, "icons/system-search-3.png");
+//				ImageDescriptor imageDescriptor = ImageDescriptor.createFromFile(null,
+//					"/home/empfang/elexis_3_4/ungrad-3-marlovits/ch.marlovits.testingView/rsc/system-search-3.png");
+				setImageDescriptor(imageDescriptor);
+				//setChecked(false);
+			}
+			
+			@Override
+			public void run(){
+				selected = !selected;
+				// +++++ STARTstart 
+				MarlovitsKontaktBlattExtension.setEditing(selected);
+				MarlovitsKontaktBlattExtension.setEditing(!MarlovitsKontaktBlattExtension.getEditing());
+				MarlovitsKontaktBlattExtension.isSearching = selected;
+				// +++++ END
+				Kontakt dummy = Kontakt.load(MarlovitsKontaktBlattExtension.dummyPatientID);
+				kb.setKontakt(dummy);
+				kb.visible(true);
+				//setChecked(selected);
+			}
+		};
+		// +++++ END
+		menu.createMenu(GlobalActions.printKontaktEtikette
+		// +++++ START
+			, actionShowEditPart
+		// +++++ START
+		);
+		menu.createToolbar(GlobalActions.printKontaktEtikette
+		// +++++ START
+			, actionShowEditPart
+		// +++++ START
+		);
 	}
 	
 	@Override
