@@ -37,6 +37,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISaveablePart2;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PropertyDialogAction;
 import org.eclipse.ui.part.ViewPart;
@@ -76,6 +79,7 @@ import ch.elexis.data.Person;
 import ch.elexis.data.Query;
 import ch.elexis.data.Reminder;
 import ch.elexis.data.Sticker;
+import ch.rgw.tools.ExHandler;
 import ch.rgw.tools.StringTool;
 import ch.rgw.tools.TimeTool;
 
@@ -175,35 +179,32 @@ public class PatientenListeView extends ViewPart implements IActivationListener,
 		populateViewMenu();
 
 		StructuredViewer viewer = cv.getViewerWidget();
-		viewer.addDoubleClickListener(new IDoubleClickListener() {
-
-			@Override
-			public void doubleClick(DoubleClickEvent event) {
-				PropertyDialogAction pdAction = new PropertyDialogAction(new SameShellProvider(parent),
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite()
-								.getSelectionProvider());
-
-				if (pdAction.isApplicableForSelection())
-					pdAction.run();
-			}
-		});
+//		viewer.addDoubleClickListener(new IDoubleClickListener() {
+//
+//			@Override
+//			public void doubleClick(DoubleClickEvent event) {
+//				PropertyDialogAction pdAction = new PropertyDialogAction(new SameShellProvider(parent),
+//						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite()
+//								.getSelectionProvider());
+//
+//				if (pdAction.isApplicableForSelection())
+//					pdAction.run();
+//			}
+//		});
 		getSite().registerContextMenu(menus.getContextMenu(), viewer);
 		getSite().setSelectionProvider(viewer);
 
-		// // ****DoubleClick Version Marlovits -> öffnet bei DoubleClick die
-		// Patienten-Detail-Ansicht
-		// cv.addDoubleClickListener(new DoubleClickListener() {
-		// @Override
-		// public void doubleClicked(PersistentObject obj, CommonViewer cv){
-		// try {
-		// PatientDetailView2 pdv =
-		// (PatientDetailView2)
-		// getSite().getPage().showView(PatientDetailView2.ID);
-		// } catch (PartInitException e) {
-		// ExHandler.handle(e);
-		// }
-		// }
-		// });
+		// ****DoubleClick Version Marlovits -> öffnet bei DoubleClick die
+		viewer.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event){
+				try {
+					getSite().getPage().showView("ch.marlovits.PatDetail_v2");
+				} catch (PartInitException e) {
+					ExHandler.handle(e);
+				}
+			}
+		});
 	}
 
 	private void updateFocusField() {
