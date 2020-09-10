@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><?pde?><!-- generated with https://github.com/mbarbero/fr.obeo.releng.targetplatform --><target name="Elexis" sequenceNumber="1510846809">
+  <locations>
+    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
+      <repository location="http://download.elexis.info/elexis/master/p2/target/"/>
+	    <unit id="com.make.chromium.cef.feature.feature.group" version="0.4.0.202005172227"/>
+	    <unit id="org.eclipse.e4.tools.bundle.spy.feature.feature.group" version="0.1.0.v20200123-1744"/>
+	    <unit id="org.eclipse.swt.chromium.feature.feature.group" version="0.10.2.201908130308"/>
+	    <unit id="org.eclipse.e4.rcp.feature.group" version="4.15.0.v20200304-0601"/>
+	    <unit id="org.eclipse.e4.tools.context.spy.feature.feature.group" version="0.17.0.v20200123-1744"/>
+	    <unit id="org.eclipse.e4.tools.css.spy.feature.feature.group" version="0.14.0.v20200123-1744"/>
+	    <unit id="org.eclipse.e4.tools.event.spy.feature.feature.group" version="0.15.0.v20200123-1744"/>
+	    <unit id="org.eclipse.e4.tools.model.spy.feature.feature.group" version="0.1.100.v20200123-1744"/>
+	    <unit id="org.eclipse.e4.tools.preference.spy.feature.feature.group" version="0.1.0.v20200203-1625"/>
+	    <unit id="org.eclipse.e4.tools.spies.feature.feature.group" version="0.18.0.v20200203-1625"/>
+	    <unit id="org.eclipse.ecf.core.feature.feature.group" version="1.5.500.v20200217-1548"/>
+	    <unit id="org.eclipse.ecf.core.ssl.feature.feature.group" version="1.1.300.v20191023-2007"/>
+	    <unit id="org.eclipse.ecf.filetransfer.feature.feature.group" version="3.14.700.v20200217-0016"/>
+	    <unit id="org.eclipse.ecf.filetransfer.httpclient45.feature.feature.group" version="1.0.300.v20200217-0016"/>
+	    <unit id="org.eclipse.ecf.filetransfer.ssl.feature.feature.group" version="1.1.200.v20191024-1546"/>
+	    <unit id="org.eclipse.emf.codegen.ecore.feature.group" version="2.21.0.v20200112-0705"/>
+	    <unit id="org.eclipse.emf.codegen.ecore.source.feature.group" version="2.21.0.v20200112-0705"/>
+	    <unit id="org.eclipse.emf.codegen.ecore.ui.feature.group" version="2.21.0.v20200109-0655"/>
+	    <unit id="org.eclipse.emf.codegen.ecore.ui.source.feature.group" version="2.21.0.v20200109-0655"/>
+	    <unit id="org.eclipse.emf.codegen.feature.group" version="2.19.0.v20190821-1536"/>
+	    <unit id="org.eclipse.emf.codegen.source.feature.group" version="2.19.0.v20190821-1536"/>
+	    <unit id="org.eclipse.emf.codegen.ui.feature.group" version="2.21.0.v20191228-0640"/>
+	    <unit id="org.eclipse.emf.codegen.ui.source.feature.group" version="2.21.0.v20191228-0640"/>
+	    <unit id="org.eclipse.emf.common.feature.group" version="2.18.0.v20191225-1014"/>
+	    <unit id="org.eclipse.emf.common.source.feature.group" version="2.18.0.v20191225-1014"/>
+	    <unit id="org.eclipse.emf.common.ui.feature.group" version="2.17.0.v20190507-0402"/>
+	    <unit id="org.eclipse.emf.common.ui.source.feature.group" version="2.17.0.v20190507-0402"/>
+	    <unit id="org.eclipse.emf.converter.feature.group" version="2.15.0.v20190418-1022"/>
+	    <unit id="org.eclipse.emf.converter.source.feature.group" version="2.15.0.v20190418-1022"/>
+	    <unit id="org.eclipse.emf.databinding.edit.feature.group" version="1.7.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.databinding.edit.source.feature.group" version="1.7.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.databinding.feature.group" version="1.7.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.databinding.source.feature.group" version="1.7.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.doc.feature.group" version="2.20.0.v20200127-1346"/>
+	    <unit id="org.eclipse.emf.ecore.edit.feature.group" version="2.14.0.v20190822-1451"/>
+	    <unit id="org.eclipse.emf.ecore.edit.source.feature.group" version="2.14.0.v20190822-1451"/>
+	    <unit id="org.eclipse.emf.ecore.editor.feature.group" version="2.17.0.v20190528-0725"/>
+	    <unit id="org.eclipse.emf.ecore.editor.source.feature.group" version="2.17.0.v20190528-0725"/>
+	    <unit id="org.eclipse.emf.ecore.feature.group" version="2.21.0.v20200127-1342"/>
+	    <unit id="org.eclipse.emf.ecore.source.feature.group" version="2.21.0.v20200127-1342"/>
+	    <unit id="org.eclipse.emf.edit.feature.group" version="2.16.0.v20190920-0401"/>
+	    <unit id="org.eclipse.emf.edit.source.feature.group" version="2.16.0.v20190920-0401"/>
+	    <unit id="org.eclipse.emf.edit.ui.feature.group" version="2.19.0.v20200205-0529"/>
+	    <unit id="org.eclipse.emf.edit.ui.source.feature.group" version="2.19.0.v20200205-0529"/>
+	    <unit id="org.eclipse.emf.feature.group" version="2.21.0.v20200205-0529"/>
+	    <unit id="org.eclipse.emf.mapping.ecore.editor.feature.group" version="2.14.0.v20190528-0725"/>
+	    <unit id="org.eclipse.emf.mapping.ecore.editor.source.feature.group" version="2.14.0.v20190528-0725"/>
+	    <unit id="org.eclipse.emf.mapping.ecore.feature.group" version="2.12.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.mapping.feature.group" version="2.13.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.mapping.source.feature.group" version="2.13.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.mapping.ui.feature.group" version="2.13.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.mapping.ui.source.feature.group" version="2.13.0.v20190323-1059"/>
+	    <unit id="org.eclipse.emf.sdk.feature.group" version="2.21.0.v20200205-0529"/>
+	    <unit id="org.eclipse.emf.source.feature.group" version="2.21.0.v20200205-0529"/>
+	    <unit id="org.eclipse.equinox.executable.feature.group" version="3.8.700.v20200207-2156"/>
+	    <unit id="org.eclipse.equinox.p2.core.feature.feature.group" version="1.6.500.v20200221-1022"/>
+	    <unit id="org.eclipse.equinox.p2.extras.feature.feature.group" version="1.4.700.v20200221-1022"/>
+	    <unit id="org.eclipse.equinox.p2.rcp.feature.feature.group" version="1.4.700.v20200222-1600"/>
+	    <unit id="org.eclipse.equinox.p2.user.ui.feature.group" version="2.4.700.v20200222-1600"/>
+	    <unit id="org.eclipse.gemini.jpa.feature.feature.group" version="1.2.0.201307051903"/>
+	    <unit id="org.eclipse.help.feature.group" version="2.3.100.v20200305-0155"/>
+	    <unit id="org.eclipse.mylyn.wikitext.editors_feature.feature.group" version="3.0.36.202002070035"/>
+	    <unit id="org.eclipse.mylyn.wikitext_feature.feature.group" version="3.0.36.202002070035"/>
+	    <unit id="org.eclipse.nebula.cwt.feature.feature.group" version="1.1.0.202007241204"/>
+	    <unit id="org.eclipse.nebula.widgets.cdatetime.feature.feature.group" version="1.5.0.202007241204"/>
+	    <unit id="org.eclipse.nebula.widgets.tablecombo.feature.feature.group" version="1.2.0.202007241204"/>
+	    <unit id="org.eclipse.platform.feature.group" version="4.15.0.v20200305-0155"/>
+	    <unit id="org.eclipse.rcp.feature.group" version="4.15.0.v20200305-0155"/>
+    </location>
+  </locations>
+</target>
