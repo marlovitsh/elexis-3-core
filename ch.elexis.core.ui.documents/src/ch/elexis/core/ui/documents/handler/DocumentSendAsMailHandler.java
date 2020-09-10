@@ -32,6 +32,7 @@ import ch.elexis.core.data.events.ElexisEventDispatcher;
 import ch.elexis.core.model.IDocument;
 import ch.elexis.core.ui.documents.service.DocumentStoreServiceHolder;
 import ch.elexis.data.Patient;
+import ch.marlovits.utils.PdfUtils;
 
 public class DocumentSendAsMailHandler extends AbstractHandler implements IHandler {
 	
@@ -51,6 +52,14 @@ public class DocumentSendAsMailHandler extends AbstractHandler implements IHandl
 				if (iDocument instanceof IDocument) {
 					Optional<File> tmpFile = getTempFile((IDocument) iDocument);
 					if (tmpFile.isPresent()) {
+						// +++++ START SEND AS PDF 
+						if (tmpFile.isPresent()) {
+							File tmp2 = PdfUtils.convertToPdf(tmpFile.get());
+							if (tmp2 != null) {
+								tmpFile = Optional.of(tmp2);
+							}
+						}
+						// +++++ END SEND AS PDF
 						attachments.add(tmpFile.get());
 					}
 				}

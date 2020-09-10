@@ -27,6 +27,7 @@ import ch.elexis.core.data.activator.CoreHub;
 import ch.elexis.core.data.events.ElexisEventDispatcher;
 import ch.elexis.data.Brief;
 import ch.elexis.data.Patient;
+import ch.marlovits.utils.PdfUtils;
 
 public class SendBriefAsMailHandler extends AbstractHandler implements IHandler {
 	
@@ -41,6 +42,14 @@ public class SendBriefAsMailHandler extends AbstractHandler implements IHandler 
 			List<File> attachments = new ArrayList<File>();
 			Optional<File> tmpFile = getTempFile(brief);
 			if (tmpFile.isPresent()) {
+				// +++++ START SEND AS PDF 
+				if (tmpFile.isPresent()) {
+					File tmp2 = PdfUtils.convertToPdf(tmpFile.get());
+					if (tmp2 != null) {
+						tmpFile = Optional.of(tmp2);
+					}
+				}
+				// +++++ END SEND AS PDF
 				attachments.add(tmpFile.get());
 				ICommandService commandService = (ICommandService) HandlerUtil
 					.getActiveWorkbenchWindow(event).getService(ICommandService.class);
