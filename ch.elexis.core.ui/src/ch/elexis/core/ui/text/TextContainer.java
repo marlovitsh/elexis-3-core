@@ -334,7 +334,7 @@ public class TextContainer {
 	
 	// +++++ START PDF
 	protected ITextPlugin getPdfPlugin() {
-		String myExtensionToUse = "Marlovits pdf-templates";
+		String myExtensionToUse = "textPluginPdfMarlovits";
 		
 		String ExtensionToUse = CoreHub.localCfg.get(Preferences.P_TEXTMODUL, null);
 		IExtensionRegistry exr = Platform.getExtensionRegistry();
