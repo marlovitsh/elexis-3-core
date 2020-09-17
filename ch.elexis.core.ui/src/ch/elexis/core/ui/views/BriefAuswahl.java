@@ -488,7 +488,9 @@ public class BriefAuswahl extends ViewPart implements
 							} else {
 								TextView tv =
 									(TextView) getViewSite().getPage().showView(TextView.ID);
-								if (brief.getMimeType().equalsIgnoreCase("pdf")) { //$NON-NLS-1$
+								// +++++ START PDF
+								//if (brief.getMimeType().equalsIgnoreCase("pdf")) { //$NON-NLS-1$
+								if (brief.getMimeType().endsWith("pdf")) { //$NON-NLS-1$
 									try {
 										File temp = File.createTempFile("letter_", ".pdf"); //$NON-NLS-1$ //$NON-NLS-2$
 										temp.deleteOnExit();
@@ -501,6 +503,7 @@ public class BriefAuswahl extends ViewPart implements
 										SWTHelper.alert(Messages.BriefAuswahlErrorHeading, //$NON-NLS-1$
 											Messages.BriefAuswahlCouldNotLoadText); //$NON-NLS-1$
 									}
+									// +++++ END PDF
 								} else if (tv.openDocument(brief) == false) {
 									SWTHelper.alert(Messages.BriefAuswahlErrorHeading, //$NON-NLS-1$
 										Messages.BriefAuswahlCouldNotLoadText); //$NON-NLS-1$
