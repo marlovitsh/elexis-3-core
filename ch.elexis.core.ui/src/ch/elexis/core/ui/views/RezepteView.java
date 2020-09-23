@@ -44,7 +44,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.part.ViewPart;
-
+import ch.artikelstamm.elexis.common.ArtikelstammItem;
 import ch.elexis.admin.AccessControlDefaults;
 import ch.elexis.core.constants.StringConstants;
 import ch.elexis.core.data.events.ElexisEvent;
@@ -68,6 +68,7 @@ import ch.elexis.core.ui.util.PersistentObjectDropTarget;
 import ch.elexis.core.ui.util.SWTHelper;
 import ch.elexis.core.ui.util.ViewMenus;
 import ch.elexis.core.ui.views.codesystems.LeistungenView;
+import ch.elexis.data.ArticleDefaultSignature;
 import ch.elexis.data.Artikel;
 import ch.elexis.data.Brief;
 import ch.elexis.data.Fall;
@@ -249,6 +250,33 @@ public class RezepteView extends ViewPart implements IActivationListener, ISavea
 						Messages.RezepteView_PleaseChoosaAPrescription); //$NON-NLS-1$
 					return;
 				}
+				// +++++ START better inclusion of dosage, etc
+				// +++++ ACHTUNG: this causes a cycle on ArtikelstammItem
+				if (o instanceof ArtikelstammItem) {
+					ArtikelstammItem art = (ArtikelstammItem) o;
+					Prescription now;
+					ArticleDefaultSignature ads =
+						ArticleDefaultSignature.getDefaultsignatureForArticle(art);
+					if (ads != null) {
+						String signatureLabel = ads.getSignatureFreeText();
+						;
+						if (signatureLabel.isEmpty()) {
+							signatureLabel = ads.getSignatureMorning().trim() + "-"
+								+ ads.getSignatureNoon().trim() + "-"
+								+ ads.getSignatureEvening().trim();
+							if (!ads.getSignatureNight().trim().isEmpty())
+								signatureLabel =
+									signatureLabel + "-" + ads.getSignatureNight().trim();
+						}
+						now = new Prescription(art, actR.getPatient(), signatureLabel,
+							ads.getSignatureComment());
+					} else {
+						now = new Prescription(art, actR.getPatient(), "", "");
+					}
+					actR.addPrescription(now);
+					refresh();
+				} else
+				// +++++ END better inclusion of dosage, etc
 				if (o instanceof Artikel) {
 					Artikel art = (Artikel) o;
 					
